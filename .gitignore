@@ -1,2 +1,9 @@
+# Build files
+dep/
+obj/
+src/glyphs.c
+src/glyphs.h
+
+# Editors
 .idea
 .vscode
