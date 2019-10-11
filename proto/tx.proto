@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+message Transaction {
+
+    message Input {
+        bytes input_tx_hash = 1 [(nanopb).max_size = 32, (nanopb).fixed_length = true];
+        int32 input_index = 2;
+    }
+  
+    message Output {
+        bytes dest_addr = 3 [(nanopb).max_size = 25, (nanopb).fixed_length = true];
+        int32 amount = 4;
+    }
+    
+    repeated Input inputs = 1 [(nanopb).max_count = 5];
+    repeated Output outputs = 2 [(nanopb).max_count = 5];
+    string msg = 3 [(nanopb).max_size = 128,  (nanopb).fixed_length = true];
+
+  }
+
