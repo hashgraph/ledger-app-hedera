@@ -88,7 +88,7 @@ void app_main() {
                 }
 
                 G_io_apdu_buffer[tx++] = sw >> 8;
-                G_io_apdu_buffer[tx++] = sw;
+                G_io_apdu_buffer[tx++] = sw & 0xff;
             }
             FINALLY {
                 // do nothing

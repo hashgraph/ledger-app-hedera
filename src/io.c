@@ -79,3 +79,10 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     }
     return 0;
 }
+
+void io_exchange_with_code(uint16_t code, uint16_t tx) {
+    G_io_apdu_buffer[tx++] = code >> 8;
+    G_io_apdu_buffer[tx++] = code & 0xff;
+
+    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, tx);
+}

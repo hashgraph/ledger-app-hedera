@@ -12,7 +12,10 @@
                 "OS_IO_SEPROXYHAL",
                 "HAVE_BAGL",
                 "IO_SEPROXYHAL_BUFFER_SIZE_B=128",
-                "APPVERSION=\"1.0.0\""
+                "APPVERSION=\"1.0.0\"",
+                "APPVERSION_M=1",
+                "APPVERSION_N=0",
+                "APPVERSION_P=0"
             ],
             "macFrameworkPath": [],
             "compilerPath": "/usr/bin/clang",

@@ -10,6 +10,7 @@
         "pb_encode.h": "c",
         "pb_custom.h": "c",
         "menu.h": "c",
-        "pb_decode.h": "c"
+        "pb_decode.h": "c",
+        "stdint.h": "c"
     }
 }
