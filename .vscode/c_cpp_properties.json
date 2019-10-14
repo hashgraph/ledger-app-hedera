@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/proto",
+                "${workspaceFolder}/vendor/ledger-nanopb",
+                "${workspaceFolder}/vendor/nanos-secure-sdk/include"
+            ],
+            "defines": [
+                "OS_IO_SEPROXYHAL",
+                "HAVE_BAGL",
+                "IO_SEPROXYHAL_BUFFER_SIZE_B=128",
+                "APPVERSION=\"1.0.0\""
+            ],
+            "macFrameworkPath": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
