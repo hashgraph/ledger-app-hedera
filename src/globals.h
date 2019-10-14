@@ -1,8 +1,7 @@
+#pragma once
+
 #include "os.h"
 #include "os_io_seproxyhal.h"
-
-#ifndef _GLOBALS_H_
-#define _GLOBALS_H_
 
 #define P1_CONFIRM 0x01
 #define P1_NON_CONFIRM 0x00
@@ -19,5 +18,3 @@ extern ux_state_t ux;
 // display stepped screens
 extern unsigned int ux_step;
 extern unsigned int ux_step_count;
-
-#endif

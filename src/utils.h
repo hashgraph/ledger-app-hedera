@@ -1,10 +1,9 @@
+#pragma once
+
 #include <stdbool.h>
 #include "os.h"
 #include "cx.h"
 #include "globals.h"
-
-#ifndef _UTILS_H_
-#define _UTILS_H_
 
 typedef enum rlpTxType {
     TX_LENGTH = 0,
@@ -52,5 +51,3 @@ void sendResponse(uint8_t tx, bool approve);
         },                                                                 \
         (text), 0, 0, 0, NULL, NULL, NULL                                  \
     }
-
-#endif
