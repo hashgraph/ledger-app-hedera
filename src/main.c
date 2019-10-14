@@ -8,8 +8,10 @@
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define CLA 0xE0
+
 #define INS_GET_APP_CONFIGURATION 0x01
-#define INS_DECODE_TX_FROM_APDU 0x02
+#define INS_GET_PUBLIC_KEY 0x02
+#define INS_SIGN_TRANSACTION 0x03
 
 #define OFFSET_CLA 0
 #define OFFSET_INS 1
@@ -19,6 +21,7 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define OFFSET_CDATA 5
 
 #define MAX_BIP32_PATH_SIZE 10
+
 uint8_t buffer[512];
 uint8_t message_length;
 uint8_t bip32_path_size;
