@@ -1,4 +1,5 @@
 # Build files
+bin/
 dep/
 obj/
 src/glyphs.c
