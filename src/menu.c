@@ -3,17 +3,59 @@
 
 #if defined(TARGET_NANOS)
 
+// This is a forward declaration since [menu_about] needs to know about
+// [menu_main] to go back to it.
 static const ux_menu_entry_t menu_main[3];
 
 static const ux_menu_entry_t menu_about[3] = {
-    {NULL, NULL, 0, NULL, "Version", APPVERSION, 0, 0},
-    {menu_main, NULL, 2, &C_icon_back, "Back", NULL, 61, 40},
+    {
+        .menu = NULL,
+        .callback = NULL,
+        .userid = 0,
+        .icon = NULL,
+        .line1 = "Version",
+        .line2 = APPVERSION,
+        .text_x = 0,
+        .icon_x = 0,
+    },
+
+    {
+        .menu = menu_main,
+        .callback = NULL,
+        .userid = 0,
+        .icon = &C_icon_back,
+        .line1 = "Back",
+        .line2 = NULL,
+        .text_x = 61,
+        .icon_x = 40,
+    },
+
     UX_MENU_END
 };
 
 static const ux_menu_entry_t menu_main[3] = {
-    {menu_about, NULL, 0, NULL, "About", NULL, 0, 0},
-    {NULL, os_sched_exit, 0, &C_icon_dashboard, "Quit app", NULL, 50, 29},
+    {
+        .menu = menu_about,
+        .callback = NULL,
+        .userid = 0,
+        .icon = NULL,
+        .line1 = "About",
+        .line2 = NULL,
+        .text_x = 0,
+        .icon_x = 0,
+    },
+
+    {
+        .menu = NULL,
+        .callback = os_sched_exec,
+        .userid = 0,
+        .icon = &C_icon_dashboard,
+        .line1 = "Quit app",
+        .line2 = NULL,
+        .text_x = 50,
+        .icon_x = 29,
+    },
+
     UX_MENU_END
 };
 
