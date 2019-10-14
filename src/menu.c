@@ -47,7 +47,7 @@ static const ux_menu_entry_t menu_main[3] = {
 
     {
         .menu = NULL,
-        .callback = os_sched_exec,
+        .callback = (void (*)(unsigned int))&os_sched_exec,
         .userid = 0,
         .icon = &C_icon_dashboard,
         .line1 = "Quit app",
