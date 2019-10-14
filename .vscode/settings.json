@@ -1,16 +1,5 @@
 {
     "python.linting.pylintEnabled": false,
     "python.linting.pylamaEnabled": true,
-    "python.linting.enabled": true,
-    "files.associations": {
-        "os.h": "c",
-        "globals.h": "c",
-        "os_io_seproxyhal.h": "c",
-        "transactionbody.pb.h": "c",
-        "pb_encode.h": "c",
-        "pb_custom.h": "c",
-        "menu.h": "c",
-        "pb_decode.h": "c",
-        "stdint.h": "c"
-    }
+    "python.linting.enabled": true
 }
