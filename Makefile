@@ -134,11 +134,6 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
-prepare: preparenanopb
-
-preparenanopb:
-	./prepare-nanopb.sh
-
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 
@@ -147,7 +142,6 @@ load-offline: all
 
 delete:
 	python -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
-
 
 # import generic rules from the sdk
 include $(BOLOS_SDK)/Makefile.rules
