@@ -113,8 +113,10 @@ endif
 
 CC       := $(CLANGPATH)clang
 
-#CFLAGS   += -O0
-CFLAGS   += -O3 -Os
+CFLAGS   += -O3 -Os -Iproto -Ivendor/ledger-nanopb/
+
+# enable color from inside a script
+CFLAGS   += -fcolor-diagnostics
 
 AS     := $(GCCPATH)arm-none-eabi-gcc
 
@@ -126,7 +128,7 @@ LDLIBS   += -lm -lgcc -lc
 include $(BOLOS_SDK)/Makefile.glyphs
 
 ### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
-APP_SOURCE_PATH  += src
+APP_SOURCE_PATH  += src proto
 SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
@@ -148,9 +150,6 @@ include $(BOLOS_SDK)/Makefile.rules
 
 #add dependency on custom makefile filename
 dep/%.d: %.c Makefile
-
-# uncomment to add instrumentation
-#: CFLAGS += -finstrument-functions
 
 listvariants:
 	@echo VARIANTS COIN nanopb

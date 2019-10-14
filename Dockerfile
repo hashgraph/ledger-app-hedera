@@ -7,10 +7,12 @@ FROM ubuntu:19.10
 RUN apt-get update && \
     apt-get -y install gcc-multilib g++-multilib \
                        wget xz-utils \
+                       python-dev python python-pip \
                        python3-dev python3 python3-pip \
                        libudev-dev \
                        libusb-1.0-0-dev \
-                       libtinfo5
+                       libtinfo5 \
+                       protobuf-compiler python-protobuf python3-protobuf
 
 RUN mkdir -p /opt/ledger/nanox && \
     mkdir -p /opt/ledger/others
@@ -31,7 +33,8 @@ RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu
     rm clang+llvm.tar.xz && \
     mv clang+llvm* /opt/ledger/nanox/clang-arm-fropi
 
-RUN pip3 install ledgerblue
+RUN pip install ledgerblue
+RUN pip install pillow
 
 COPY x.py /opt/x.py
 

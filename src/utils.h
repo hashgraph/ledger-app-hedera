@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "os.h"
 #include "cx.h"
 #include "globals.h"

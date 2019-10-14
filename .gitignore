@@ -2,9 +2,13 @@
 bin/
 dep/
 obj/
+debug/
 src/glyphs.c
 src/glyphs.h
 
 # Editors
 .idea
-.vscode
+
+# Protobuf
+proto/*.c
+proto/*.h
