@@ -37,7 +37,7 @@ if sys.argv[0] != '/opt/x.py':
     pwd = os.getcwd()
     cmd = ' '.join(sys.argv[1:])
     subprocess.run(
-        f'docker run -v {pwd}:/workspace {image} {cmd}',
+        f'docker run --privileged -v {pwd}:/workspace {image} {cmd}',
         shell=True, check=True)
 
     sys.exit(0)
@@ -69,7 +69,7 @@ elif sys.argv[2] == 'proto':
     proto = path.realpath('proto')
     nanopb = path.realpath('vendor/ledger-nanopb/generator/proto')
 
-    subprocess.run(f'make -q', shell=True, check=True, cwd=nanopb)
+    subprocess.run('make', shell=True, check=True, cwd=nanopb)
     subprocess.run(
         f'protoc {plugin} --nanopb_out=. -I. -I{nanopb} *.proto',
         shell=True, check=True,
