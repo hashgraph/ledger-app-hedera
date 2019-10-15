@@ -136,6 +136,11 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
+check:
+	@ clang-tidy --color=1 \
+		$(foreach path, $(APP_SOURCE_PATH),$(shell find $(path) | grep "\.c$$") ) -- \
+		$(CFLAGS) $(addprefix -D,$(DEFINES)) $(addprefix -I,$(INCLUDES_PATH))
+
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 

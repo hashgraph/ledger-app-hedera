@@ -12,6 +12,7 @@ RUN apt-get update && \
                        libudev-dev \
                        libusb-1.0-0-dev \
                        libtinfo5 \
+                       clang-tidy clang-format \
                        protobuf-compiler python-protobuf python3-protobuf
 
 RUN mkdir -p /opt/ledger/nanox && \
