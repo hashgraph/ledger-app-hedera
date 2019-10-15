@@ -137,9 +137,46 @@ SDK_SOURCE_PATH  += lib_ux
 endif
 
 check:
-	@ clang-tidy --color=1 \
-		$(foreach path, $(APP_SOURCE_PATH),$(shell find $(path) | grep "\.c$$") ) -- \
-		$(CFLAGS) $(addprefix -D,$(DEFINES)) $(addprefix -I,$(INCLUDES_PATH))
+	@for src in $(SOURCES); \
+		do \
+			diffcount=\
+				`clang-format \
+					-style="{BasedOnStyle: llvm, IndentWidth: 4} \
+					-i "$(SRC_DIR)/$$src" | diff "(SRC-DIR)/$$src - \
+				| wc -l"`; \
+			if [ $$diffcount -ne 0 ]; then \
+				echo "$$src (diff: $$diffcount lines)" ; \
+			fi; \
+		done
+
+format:
+	@for src in $(SOURCES); \
+		do \
+			clang-format -style="{BasedOnStyle: llvm, IndentWidth: 4}" -i "$(SRC_DIR)/$$src"; \
+			clang-tidy -checks=" \
+				-*, \
+				readability-identifier-naming, \
+				modernize-use-auto, \
+				modernize-use-nullptr, \
+				readability-else-after-return, \
+				readability-simplify-boolean-expr, \
+				readability-redundant-member-init, \
+				modernize-use-default-member-init, \
+				modernize-use-equals-default, \
+				modernize-use-equals-delete, \
+				modernize-use-using, \
+				modernize-loop-convert, \
+				cppcoreguidelines-no-malloc, \
+				misc-redundant-expression" \
+				-config="{ \
+					CheckOptions: [ \
+						{ key: readability-identifier-naming.FunctionCase, value: lower_case }, \
+						{ key: readability-identifier-naming.VariableCase, value: lower_case }, \
+						{ key: readability-identifier-naming.GlobalConstantCase, value: UPPER_CASE } \
+					] \
+				}" \
+			"$(SRC_DIR)/$$src"; \
+		done
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
