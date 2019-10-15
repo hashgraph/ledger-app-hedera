@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "os.h"
 #include "os_io_seproxyhal.h"
 #include "errors.h"
@@ -22,7 +23,7 @@ static const bagl_element_t ui_get_public_key_approve[] = {
 
     // These two lines form a complete sentence:
     //
-    //    Generate Public
+    //    Export Public
     //       Key #123?
     //
 
@@ -38,7 +39,7 @@ static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, u
 
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT: // REJECT
-            io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+            io_exchange_with_code(EXCEPTION_USER_REJECTED, tx);
             ui_idle();
             break;
 
@@ -85,9 +86,7 @@ void handle_get_public_key(
     ctx.key_index = U4LE(buffer, 0);
 
     // Prepare the approval screen
-    os_memmove(ctx.key_str, "Key #", 5);
-    int n = bin2dec(ctx.key_str+5, ctx.key_index);
-    os_memmove(ctx.key_str+5+n, "?", 2);
+    snprintf(ctx.key_str, 40, "Key #%d?", ctx.key_index);
 
     UX_DISPLAY(ui_get_public_key_approve, NULL);
 
