@@ -6,6 +6,8 @@
 // source, which you can find in the nanos-secure-sdk repo. Fortunately, you
 // don't need to understand any of this in order to write an app.
 
+unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+
 void io_seproxyhal_display(const bagl_element_t *element) {
     io_seproxyhal_display_default((bagl_element_t*)element);
 }

@@ -7,8 +7,6 @@
 #include "pb_encode.h"
 #include "TransactionBody.pb.h"
 
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-
 #define CLA 0xE0
 
 // These are the offsets of various parts of a request APDU packet.
