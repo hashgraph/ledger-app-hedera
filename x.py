@@ -37,7 +37,7 @@ if sys.argv[0] != '/opt/x.py':
     pwd = os.getcwd()
     cmd = ' '.join(sys.argv[1:])
     subprocess.run(
-        f'docker run --privileged -v {pwd}:/workspace {image} {cmd}',
+        f'docker run --rm --privileged -v {pwd}:/workspace {image} {cmd}',
         shell=True, check=True)
 
     sys.exit(0)
