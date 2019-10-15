@@ -44,14 +44,14 @@ void app_main() {
                 rx = io_exchange(CHANNEL_APDU | flags, rx);
                 flags = 0;
 
-                // no ADPU received; trigger a reset
+                // no APDU received; trigger a reset
                 if (rx == 0) {
                     THROW(EXCEPTION_IO_RESET);
                 }
 
-                // malformed ADPU
+                // malformed APDU
                 if (G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-                    THROW(EXCEPTION_MALFORMED_ADPU);
+                    THROW(EXCEPTION_MALFORMED_APDU);
                 }
 
                 // lookup and call the requested instruction
