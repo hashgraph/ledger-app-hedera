@@ -1,6 +1,6 @@
 #*******************************************************************************
-#   Ledger App
-#   (c) 2017 Ledger
+#   Ledger App Hedera
+#   (c) 2019 Hedera Hashgraph
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -20,21 +20,25 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
+#########
+#  App  #
+#########
 APP_LOAD_PARAMS= --curve ed25519 --path "44'/3030'" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
-APPVERSION_M=1
-APPVERSION_N=0
-APPVERSION_P=0
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
-APPNAME = "nanopb"
+APPVERSION_M = 1
+APPVERSION_N = 0
+APPVERSION_P = 0
+APPVERSION = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
+APPNAME = Hedera
+APPVERSION = 0.4.2
 
 DEFINES += $(DEFINES_LIB)
 
-
+ICONNAME = icons/nanos_app_hedera.gif
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-	ICONNAME=icons/nanox_app_nanopb.gif
+	ICONNAME=icons/nanox_app_hedera.gif
 else
-	ICONNAME=icons/nanos_app_nanopb.gif
+	ICONNAME=icons/nanos_app_hedera.gif
 endif
 
 
