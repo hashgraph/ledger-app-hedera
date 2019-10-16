@@ -152,11 +152,11 @@ format:
 			clang-tidy "$(SRC_DIR)/$$src"; \
 		done
 
-flash-debug:
-	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/debug.hex --reverse --nocrc
+#flash-debug:
+#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/debug.hex --reverse --nocrc
 
-flash-normal:
-	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/normal.hex --reverse --nocrc
+#flash-normal:
+#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/normal.hex --reverse --nocrc
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
