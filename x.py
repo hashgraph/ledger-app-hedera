@@ -26,7 +26,7 @@ if target not in TARGETS:
 
 # Check if we are inside the Docker environment
 if sys.argv[0] != '/opt/x.py':
-    # Build the docker envrionment image
+    # Build the docker environment image
     out = subprocess.run(
         'docker build -q .',
         check=True, shell=True,
