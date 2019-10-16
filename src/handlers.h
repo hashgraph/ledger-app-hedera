@@ -9,7 +9,7 @@
 
 #define INS_GET_APP_CONFIGURATION 0x01
 #define INS_GET_PUBLIC_KEY 0x02
-#define INS_SIGN_TRANSACTION 0x03
+#define INS_SIGN_TRANSACTION 0x04
 
 typedef void handler_fn_t(
     uint8_t p1,

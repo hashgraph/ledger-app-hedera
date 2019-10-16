@@ -26,3 +26,21 @@ void hedera_derive_keypair(
     os_memset(seed, 0, sizeof(seed));
     os_memset(&pk, 0, sizeof(pk));
 }
+
+void derive_and_sign(
+        uint32_t index,
+        const uint8_t* buffer,
+        /* out */ uint8_t* response
+        ) {
+
+    // Get Keys
+    cx_ecfp_private_key_t private_key;
+    hedera_derive_keypair(index, &private_key, NULL);
+
+    // Sign Transaction
+    cx_ecfp_sign(&private_key, NULL, buffer, 32, NULL, 0, result, 64, NULL);
+
+    // Overwrite Private Key
+    os_memset(&private_key, 1, sizeof(private_key));
+    os_memset(&private_key, 0, sizeof(private_key));
+}
