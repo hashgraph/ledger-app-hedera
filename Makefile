@@ -139,9 +139,6 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
-clean:
-	rm bin/* && rm glyphs/* && rm obj/*
-
 check:
 	@for src in $(SOURCES); \
 		do \
