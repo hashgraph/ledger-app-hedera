@@ -130,11 +130,11 @@ void handle_sign_transaction(
     os_memcpy(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
 
     // Try to parse transaction body
-
     HederaTransactionBody hedera_tx = HederaTransactionBody_init_default;
-     
     pb_istream_t stream = pb_istream_from_buffer(ctx.raw_transaction, ctx.raw_transaction_length);
-
+    
+    
+    // TODO: BROKEN
     uint8_t status = pb_decode(&stream, HederaTransactionBody_fields, &hedera_tx);
 
     if (status == 0) {
