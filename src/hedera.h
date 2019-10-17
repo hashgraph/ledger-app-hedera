@@ -19,8 +19,9 @@ extern void hedera_derive_keypair(
     /* out */ cx_ecfp_public_key_t* public_key
 );
 
-extern void derive_and_sign(
+extern uint16_t hedera_sign(
     uint32_t index,
-    const uint8_t* buffer,
+    const uint8_t* hash,
+    uint8_t hash_len,
     /* out */ uint8_t* result
 );

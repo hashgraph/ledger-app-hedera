@@ -27,12 +27,12 @@ void hedera_derive_keypair(
     os_memset(&pk, 0, sizeof(pk));
 }
 
-void derive_and_sign(
-        uint32_t index,
-        const uint8_t* buffer,
-        /* out */ uint8_t* result
-        ) {
-
+uint16_t hedera_sign(
+    uint32_t index,
+    const uint8_t* hash,
+    uint8_t hash_len,
+    /* out */ uint8_t* result
+) {
     // Get Keys
     cx_ecfp_private_key_t private_key;
     hedera_derive_keypair(index, &private_key, NULL);
@@ -42,17 +42,18 @@ void derive_and_sign(
     cx_eddsa_sign(
         &private_key,                    // private key
         0,                               // mode (UNSUPPORTED)
-        CX_SHA512,                       // hashID (???)
-        buffer,                          // hash
-        sizeof(buffer)/sizeof(uint8_t),  // hash length
+        CX_SHA512,                       // hashID
+        hash,                            // hash
+        hash_len,                        // hash length
         NULL,                            // context (UNUSED)
         0,                               // context length (0)
         result,                          // signature
         64,                              // signature length
-        0                                // info (0)
+        NULL                             // info
     );
 
-    // Overwrite Private Key
-    os_memset(&private_key, 1, sizeof(private_key));
+    // Clear private key
     os_memset(&private_key, 0, sizeof(private_key));
+
+    return 64;
 }

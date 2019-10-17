@@ -12,9 +12,10 @@
 // Define context for UI interaction
 static struct sign_tx_context_t {
     uint32_t key_index;
-    uint8_t buffer[32];
-    char sign_str[40];
-    char key_str[40];
+    char line_2[40];
+
+    // Continuous hash of the raw transaction
+    cx_sha512_t hash;
 } ctx;
 
 // Define Bagel for Sign Transaction Confirmation
@@ -24,11 +25,11 @@ static const bagl_element_t ui_sign_tx_approve[] = {
         UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
 
         // X                            O
-        //      Sign Transaction With
-        //      Key #123456?
+        //      Sign Transaction
+        //      with Key #0?
 
-        UI_TEXT(0x00, 0, 12, 128, (char*) ctx.sign_str),
-        UI_TEXT(0x00, 0, 26, 128, (char*) ctx.key_str)
+        UI_TEXT(0x00, 0, 12, 128, "Sign Transaction"),
+        UI_TEXT(0x00, 0, 26, 128, ctx.line_2)
 };
 
 // Button handler for ui_sign_tx_approve
@@ -41,12 +42,12 @@ static unsigned int ui_sign_tx_approve_button(unsigned int button_mask, unsigned
             ui_idle();
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:  // Approve
-            derive_and_sign(ctx.key_index, ctx.buffer, G_io_apdu_buffer);  // Derive Secrets, Sign (assign sig to apdu)
-            tx += 64;
+            tx += hedera_sign(ctx.key_index, ctx.hash.acc, 64, G_io_apdu_buffer);  // Derive Secrets, Sign (assign sig to apdu)
             io_exchange_with_code(EXCEPTION_OK, tx);  // flush
             ui_idle();
             break;
     }
+
     return 0;
 }
 
@@ -66,11 +67,12 @@ void handle_sign_transaction(
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
-    snprintf(ctx.sign_str, 40, "%s", "Sign Transaction With");
-    snprintf(ctx.key_str, 40, "Key #%d?", ctx.key_index);
+    snprintf(ctx.line_2, 40, "with Key #%d?", ctx.key_index);
 
-    // Get transaction data
-    os_memmove(ctx.buffer, buffer, sizeof(ctx.buffer));
+    // Hash transaction
+    // TODO: Use P1_MORE to accept a streaming body (for > max(APDU))
+    cx_sha512_init(&ctx.hash);
+    cx_hash(&ctx.hash, CX_LAST, buffer + 4, len - 4, NULL, 0);
 
     // Display Confirmation Screen
     UX_DISPLAY(ui_sign_tx_approve, NULL);
