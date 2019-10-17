@@ -30,7 +30,7 @@ void hedera_derive_keypair(
 void derive_and_sign(
         uint32_t index,
         const uint8_t* buffer,
-        /* out */ uint8_t* response
+        /* out */ uint8_t* result
         ) {
 
     // Get Keys
@@ -38,7 +38,19 @@ void derive_and_sign(
     hedera_derive_keypair(index, &private_key, NULL);
 
     // Sign Transaction
-    cx_ecfp_sign(&private_key, NULL, buffer, 32, NULL, 0, result, 64, NULL);
+    // <cx.h> 2283
+    cx_eddsa_sign(
+        &private_key,                    // private key
+        0,                               // mode (UNSUPPORTED)
+        CX_SHA512,                       // hashID (???)
+        buffer,                          // hash
+        sizeof(buffer)/sizeof(uint8_t),  // hash length
+        NULL,                            // context (UNUSED)
+        0,                               // context length (0)
+        result,                          // signature
+        64,                              // signature length
+        0                                // info (0)
+    );
 
     // Overwrite Private Key
     os_memset(&private_key, 1, sizeof(private_key));
