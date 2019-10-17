@@ -41,7 +41,7 @@ static unsigned int ui_sign_tx_approve_button(unsigned int button_mask, unsigned
             ui_idle();
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:  // Approve
-            derive_and_sign(ctx.key_index, ctx.buffer, G_io_apdu_buffer);  // Derive Secrets, Sign
+            derive_and_sign(ctx.key_index, ctx.buffer, G_io_apdu_buffer);  // Derive Secrets, Sign (assign sig to apdu)
             tx += 64;
             io_exchange_with_code(EXCEPTION_OK, tx);  // flush
             ui_idle();
@@ -70,7 +70,7 @@ void handle_sign_transaction(
     snprintf(ctx.key_str, 40, "Key #%d?", ctx.key_index);
 
     // Get transaction data
-    os_memmove(ctx.buffer, buffer + 4, sizeof(ctx.buffer));
+    os_memmove(ctx.buffer, buffer, sizeof(ctx.buffer));
 
     // Display Confirmation Screen
     UX_DISPLAY(ui_sign_tx_approve, NULL);
