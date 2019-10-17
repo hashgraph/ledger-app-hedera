@@ -27,16 +27,6 @@ void hedera_derive_keypair(
     os_memset(&pk, 0, sizeof(pk));
 }
 
-void hedera_unpack_tx(
-    const uint8_t* tx, 
-    uint8_t tx_len,
-    /* out */ HederaCryptoTransferTransactionBody* transfer_tx_body,
-    /* out */ HederaCryptoCreateTransactionBody* create_tx_body
-    ) {
-        transfer_tx_body = /* do unpack */;
-        create_tx_body = /* do unpack */;
-}
-
 uint16_t hedera_sign(
     uint32_t index,
     const uint8_t* tx,

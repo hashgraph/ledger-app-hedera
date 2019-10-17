@@ -12,10 +12,9 @@
 #include "io.h"
 #include "ui.h"
 #include "utils.h"
-#include "CryptoCreateTransactionBody.pb.h"
-#include "CryptoTransferTransactionBody.pb.h"
+#include "TransactionBody.pb.h"
 
-extern const MAX_TX_SIZE = 1024;
+#define MAX_TX_SIZE 1024
 
 extern void hedera_derive_keypair(
     uint32_t index,

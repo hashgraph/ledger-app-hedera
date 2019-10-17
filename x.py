@@ -5,6 +5,7 @@
 
 # usage: ./x.py [target] ...
 
+import shutil
 import sys
 import subprocess
 import os
@@ -72,3 +73,8 @@ elif sys.argv[2] == 'proto':
         f'protoc {plugin} --nanopb_out=. -I. -I{nanopb} *.proto',
         shell=True, check=True,
         cwd=proto)
+
+    # Copy in .c files from ledger-nanopb
+    # Cry
+    shutil.copy("vendor/ledger-nanopb/pb_common.c", "src/")
+    shutil.copy("vendor/ledger-nanopb/pb_decode.c", "src/")

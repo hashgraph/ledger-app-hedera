@@ -5,6 +5,7 @@ obj/
 debug/
 src/glyphs.c
 src/glyphs.h
+src/pb_*
 
 # Editors
 .idea

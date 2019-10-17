@@ -2,10 +2,6 @@
 #include "ui.h"
 #include "handlers.h"
 #include "errors.h"
-#include "pb_custom.h"
-#include "pb_decode.h"
-#include "pb_encode.h"
-#include "TransactionBody.pb.h"
 
 #define CLA 0xE0
 
