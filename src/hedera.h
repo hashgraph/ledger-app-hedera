@@ -12,11 +12,22 @@
 #include "io.h"
 #include "ui.h"
 #include "utils.h"
+#include "CryptoCreateTransactionBody.pb.h"
+#include "CryptoTransferTransactionBody.pb.h"
+
+extern const MAX_TX_SIZE = 1024;
 
 extern void hedera_derive_keypair(
     uint32_t index,
     /* out */ cx_ecfp_private_key_t* private_key, 
     /* out */ cx_ecfp_public_key_t* public_key
+);
+
+extern void hedera_unpack_tx(
+    const uint8_t* tx, 
+    uint8_t tx_len,
+    /* out */ HederaCryptoTransferTransactionBody* transfer_tx_body,
+    /* out */ HederaCryptoCreateTransactionBody* create_tx_body
 );
 
 extern uint16_t hedera_sign(

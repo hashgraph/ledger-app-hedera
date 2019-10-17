@@ -11,28 +11,97 @@
 
 // Define context for UI interaction
 static struct sign_tx_context_t {
+    // ui common
     uint32_t key_index;
-    char line_2[40];
-    uint8_t transaction[512];
+    
+    // ui_transfer_tx_approve
+    char ui_transfer_tx_approve_l1[40];
+    char ui_transfer_tx_approve_l2[40];
+
+    // ui_create_account_tx_approve
+    char ui_create_account_tx_l2[40];
+
+    // ui_sign_tx_approve
+    char ui_sign_tx_approve_l2[40];
+
+    // Transaction from APDU
+    uint8_t transaction[MAX_TX_SIZE];
     uint8_t transaction_length;
 } ctx;
 
-// Define Bagel for Sign Transaction Confirmation
-static const bagl_element_t ui_sign_tx_approve[] = {
-        UI_BACKGROUND(),
-        UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
-        UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
+static unsigned int continue_to_sign_tx(
+    unsigned int button_mask,
+    unsigned int button_mask_counter
+) {
+    switch (button_mask) {
+        case BUTTON_EVT_RELEASED | BUTTON_LEFT:
+            io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+            ui_idle();
+            break;
+        case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
+            UX_DISPLAY(ui_sign_tx_approve, NULL);
+            break;
+    }
+}
 
-        // X                  O
-        //   Sign Transaction
-        //   with Key #0?
+static const bagl_element_t ui_transfer_tx_approve[] = {
+    UI_BACKGROUND(),
+    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
 
-        UI_TEXT(0x00, 0, 12, 128, "Sign Transaction"),
-        UI_TEXT(0x00, 0, 26, 128, ctx.line_2)
+    // X                  O
+    //   Transfer X Hbar
+    //   from 0.0.Y to 0.0.Z?
+
+    UI_TEXT(0x00, 0, 12, 128, ctx.ui_transfer_tx_approve_l1),
+    UI_TEXT(0x00, 0, 26, 128, ctx.ui_transfer_tx_approve_l2)
 };
 
-// Button handler for ui_sign_tx_approve
-static unsigned int ui_sign_tx_approve_button(unsigned int button_mask, unsigned int button_mask_counter) {
+static unsigned int ui_transfer_tx_approve_button(
+    unsigned int button_mask,
+    unsigned int button_mask_counter
+) {
+    continue_to_sign_tx(button_mask, button_mask_counter);
+}
+
+static const bagl_element_t ui_create_account_tx_approve[] = {
+    UI_BACKGROUND(),
+    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
+
+    // X                  O
+    //   Create Account
+    //   with X Hbar?
+
+    UI_TEXT(0x00, 0, 12, 128, "Create Account"),
+    UI_TEXT(0x00, 0, 26, 128, ctx.ui_create_account_tx_l2)
+};
+
+static unsigned int ui_create_account_tx_approve_button(
+    unsigned int button_mask,
+    unsigned int button_mask_counter
+) {
+    continue_to_sign_tx(button_mask, button_mask_counter);
+}
+
+static const bagl_element_t ui_sign_tx_approve[] = {
+    UI_BACKGROUND(),
+    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
+
+    // X                  O
+    //   Sign Transaction
+    //   with Key #0?
+
+    UI_TEXT(0x00, 0, 12, 128, "Sign Transaction"),
+    UI_TEXT(0x00, 0, 26, 128, ctx.ui_sign_tx_approve_l2)
+};
+
+// ui_sign_tx_approve
+static unsigned int ui_sign_tx_approve_button(
+    unsigned int button_mask, 
+    unsigned int button_mask_counter
+    ) {
     uint16_t tx = 0;
 
     switch (button_mask) {
@@ -71,16 +140,24 @@ void handle_sign_transaction(
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
-    snprintf(ctx.line_2, 40, "with Key #%d?", ctx.key_index);
+    snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
+
+    uint8_t* tx = buffer + 4;
+    uint8_t tx_len = len - 4;
+    ctx.transaction_length = tx_len;
 
     // TODO: Use P1_MORE to accept a streaming body (for > max(APDU))
+    if (sizeof(tx) > MAX_TX_SIZE) {
+        throw(EXCEPTION_MALFORMED_APDU);
+    }
+
     // Extract Transaction Message
     os_memset(ctx.transaction, 0, sizeof(ctx.transaction));
-    os_memcpy(ctx.transaction, buffer + 4, (len - 4) * sizeof(uint8_t));
-    ctx.transaction_length = len - 4;
+    os_memcpy(ctx.transaction, tx, tx_len * sizeof(uint8_t));
 
-    // Display Confirmation Screen
-    UX_DISPLAY(ui_sign_tx_approve, NULL);
+    // TODO parse TX type
+    // TODO extract text from unpacked message and put in UI state
+    // TODO show correct UI element
 
     *flags |= IO_ASYNCH_REPLY;
 }
