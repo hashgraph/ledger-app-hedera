@@ -139,10 +139,27 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
+clean:
+	rm bin/* && rm glyphs/* && rm obj/*
+
 check:
-	@ clang-tidy --color=1 \
-		$(foreach path, $(APP_SOURCE_PATH),$(shell find $(path) | grep "\.c$$") ) -- \
-		$(CFLAGS) $(addprefix -D,$(DEFINES)) $(addprefix -I,$(INCLUDES_PATH))
+	@for src in $(SOURCES); \
+		do \
+			clang-tidy --color=1 $(SRC_DIR/$$src); \
+		done
+
+format:
+	@for src in $(SOURCES); \
+		do \
+			clang-format "$(SRC_DIR)/$$src"; \
+			clang-tidy "$(SRC_DIR)/$$src"; \
+		done
+
+#flash-debug:
+#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/debug.hex --reverse --nocrc
+
+#flash-normal:
+#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/normal.hex --reverse --nocrc
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)

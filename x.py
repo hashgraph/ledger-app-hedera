@@ -22,10 +22,11 @@ target = sys.argv[1]
 TARGETS = ['x', 's', 'blue']
 if target not in TARGETS:
     print(f"target '{target}' not one of 's', 'x', or 'blue'")
+    sys.exit(0)
 
 # Check if we are inside the Docker environment
 if sys.argv[0] != '/opt/x.py':
-    # Build the docker envrionment image
+    # Build the docker environment image
     out = subprocess.run(
         'docker build -q .',
         check=True, shell=True,
@@ -47,9 +48,6 @@ if target == 's':
     bolos_sdk = path.realpath('vendor/nanos-secure-sdk')
     bolos_env = path.realpath('/opt/ledger/others')
 elif target == 'x':
-    # TODO: The prepare-devenv from the boilerplate application referenced
-    #       this directory that definitely doesn't exist.
-    #       Where is the NanoX SDK?
     bolos_sdk = path.realpath('vendor/nanox-secure-sdk')
     bolos_env = path.realpath('/opt/ledger/nanox')
 elif target == 'blue':
