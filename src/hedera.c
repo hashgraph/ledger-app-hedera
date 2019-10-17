@@ -29,8 +29,8 @@ void hedera_derive_keypair(
 
 uint16_t hedera_sign(
     uint32_t index,
-    const uint8_t* hash,
-    uint8_t hash_len,
+    const uint8_t* tx,
+    uint8_t tx_len,
     /* out */ uint8_t* result
 ) {
     // Get Keys
@@ -39,12 +39,14 @@ uint16_t hedera_sign(
 
     // Sign Transaction
     // <cx.h> 2283
+    // Claims to want Hashes, but other apps use the message itself
+    // and complain that the documentation is wrong
     cx_eddsa_sign(
         &private_key,                    // private key
         0,                               // mode (UNSUPPORTED)
         CX_SHA512,                       // hashID
-        hash,                            // hash
-        hash_len,                        // hash length
+        tx,                              // hash (really message)
+        tx_len,                          // hash length (really message length)
         NULL,                            // context (UNUSED)
         0,                               // context length (0)
         result,                          // signature

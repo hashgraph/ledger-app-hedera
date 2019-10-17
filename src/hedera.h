@@ -21,7 +21,7 @@ extern void hedera_derive_keypair(
 
 extern uint16_t hedera_sign(
     uint32_t index,
-    const uint8_t* hash,
-    uint8_t hash_len,
+    const uint8_t* tx,
+    uint8_t tx_len,
     /* out */ uint8_t* result
 );

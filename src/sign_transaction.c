@@ -13,9 +13,7 @@
 static struct sign_tx_context_t {
     uint32_t key_index;
     char line_2[40];
-
-    // Continuous hash of the raw transaction
-    cx_sha512_t hash;
+    uint8_t transaction;
 } ctx;
 
 // Define Bagel for Sign Transaction Confirmation
@@ -42,7 +40,12 @@ static unsigned int ui_sign_tx_approve_button(unsigned int button_mask, unsigned
             ui_idle();
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:  // Approve
-            tx += hedera_sign(ctx.key_index, ctx.hash.acc, 64, G_io_apdu_buffer);  // Derive Secrets, Sign (assign sig to apdu)
+            tx += hedera_sign(
+                ctx.key_index, 
+                ctx.transaction, 
+                sizeof(ctx.transaction) / sizeof(uint8_t), 
+                G_io_apdu_buffer
+            );
             io_exchange_with_code(EXCEPTION_OK, tx);  // flush
             ui_idle();
             break;
@@ -69,10 +72,10 @@ void handle_sign_transaction(
     ctx.key_index = U4LE(buffer, 0);
     snprintf(ctx.line_2, 40, "with Key #%d?", ctx.key_index);
 
-    // Hash transaction
     // TODO: Use P1_MORE to accept a streaming body (for > max(APDU))
-    cx_sha512_init(&ctx.hash);
-    cx_hash(&ctx.hash, CX_LAST, buffer + 4, len - 4, NULL, 0);
+    // Extract Transaction Message
+    os_memset(ctx.transaction, 0, sizeof(ctx.transaction));
+    os_memcpy(ctx.transaction, buffer + 4, (len - 4) * sizeof(uint8_t));
 
     // Display Confirmation Screen
     UX_DISPLAY(ui_sign_tx_approve, NULL);
