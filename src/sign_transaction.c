@@ -166,6 +166,7 @@ void handle_sign_transaction(
     );
 
     // Check each Transaction Struct, unsuccessful parse = NULL
+    // Where successful, use transaction struct to populate ui state
     if (&transfer_tx == NULL && &create_tx == NULL) {
         throw(EXCEPTION_MALFORMED_APDU);
     } else if (&transfer_tx != NULL) {
