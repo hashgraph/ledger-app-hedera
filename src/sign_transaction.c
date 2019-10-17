@@ -155,9 +155,53 @@ void handle_sign_transaction(
     os_memset(ctx.transaction, 0, sizeof(ctx.transaction));
     os_memcpy(ctx.transaction, tx, tx_len * sizeof(uint8_t));
 
-    // TODO parse TX type
-    // TODO extract text from unpacked message and put in UI state
-    // TODO show correct UI element
+    // Try to parse transaction body
+    HederaCryptoTransferTransactionBody transfer_tx;
+    HederaCryptoCreateTransactionBody create_tx;
+    hedera_unpack_tx(
+        ctx.transaction, 
+        ctx.transaction_length, 
+        &transfer_tx,  // out
+        &create_tx  // out
+    );
+
+    // Check each Transaction Struct, unsuccessful parse = NULL
+    if (&transfer_tx == NULL && &create_tx == NULL) {
+        throw(EXCEPTION_MALFORMED_APDU);
+    } else if (&transfer_tx != NULL) {
+        snprintf(
+            ctx.ui_transfer_tx_approve_l1, 
+            40, 
+            "Transfer %.2f Hbar", 
+            transfer_tx.transfers.accountAmounts[0].amount
+        );
+        snprintf(
+            ctx.ui_transfer_tx_approve_l2,
+            40,
+            "from %s to %s?",
+            sprintf(
+                "%s.%s.%s", 
+                transfer_tx.transfers.accountAmounts[0].accountID.shardNum,
+                transfer_tx.transfers.accountAmounts[0].accountID.realmNum,
+                transfer_tx.transfers.accountAmounts[0].accountID.accountNum
+            ),
+            sprintf(
+                "%s.%s.%s",
+                transfer_tx.transfers.accountAmounts[1].accountID.shardNum,
+                transfer_tx.transfers.accountAmounts[1].accountID.realmNum,
+                transfer_tx.transfers.accountAmounts[1].accountID.accountNum
+            )
+        );
+        UX_DISPLAY(ui_transfer_tx_approve, NULL);
+    } else if (&ui_create_account_tx_approve != NULL) {
+        snprintf(
+            ctx.ui_create_account_tx_l2,
+            40,
+            "with %.2f Hbar?",
+            create_tx.initialBalance
+        );
+        UX_DISPLAY(ui_transfer_tx_approve, NULL);
+    }
 
     *flags |= IO_ASYNCH_REPLY;
 }
