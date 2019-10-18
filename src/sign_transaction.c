@@ -117,7 +117,7 @@ void handle_sign_transaction(
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
-    snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
+    // snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
 
     // TODO: Investigate accepting tx bodies larger than MAX_TX_SIZE
     ctx.raw_transaction_length = len - 4;
@@ -130,20 +130,20 @@ void handle_sign_transaction(
     os_memcpy(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
 
     // Try to parse transaction body
-    HederaTransactionBody hedera_tx = HederaTransactionBody_init_default;
-    
+    // TODO: Fix!
+    HederaTransactionBody hedera_tx = HederaTransactionBody_init_zero;
+
     pb_istream_t stream = pb_istream_from_buffer(
-        &ctx.raw_transaction[0], 
-        ctx.raw_transaction_length
+        (const pb_byte_t *) &ctx.raw_transaction, 
+        (size_t) ctx.raw_transaction_length
     );
     
+
     uint8_t status = pb_decode(
         &stream, 
         HederaTransactionBody_fields, 
         &hedera_tx
     );
-
-    PRINTF("CHECK\n");
 
     if (status == 0) {
         THROW(EXCEPTION_MALFORMED_APDU);
