@@ -117,9 +117,8 @@ void handle_sign_transaction(
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
-    // snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
+    snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
 
-    // TODO: Investigate accepting tx bodies larger than MAX_TX_SIZE
     ctx.raw_transaction_length = len - 4;
     if (ctx.raw_transaction_length > MAX_TX_SIZE) {
         THROW(EXCEPTION_MALFORMED_APDU);
