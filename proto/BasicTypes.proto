@@ -4,7 +4,7 @@ import "nanopb.proto";
 
 message HederaKey {
     oneof key {
-        bytes ed25519 = 2 [(nanopb).max_size = 32, (nanopb).fixed_length = true];
+        bytes ed25519 = 2 [(nanopb).max_size = 32];
     }
 }
 

@@ -11,7 +11,7 @@ message HederaTransactionBody {
     uint64 transactionFee = 3;
     HederaDuration transactionValidDuration = 4;
     bool generateRecord = 5;
-    string memo = 6 [(nanopb).max_size = 128, (nanopb).fixed_length = true];
+    string memo = 6 [(nanopb).max_size = 128];
 
     oneof data {
         HederaCryptoCreateTransactionBody cryptoCreateAccount = 11;
