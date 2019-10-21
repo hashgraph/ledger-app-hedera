@@ -1,12 +1,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "os.h"
-#include "os_io_seproxyhal.h"
+
+#include <os.h>
+#include <os_io_seproxyhal.h>
+
 #include "errors.h"
+#include "hedera.h"
 #include "io.h"
 #include "ui.h"
-#include "hedera.h"
 #include "utils.h"
 
 static struct get_public_key_context_t {
@@ -34,6 +36,8 @@ static const bagl_element_t ui_get_public_key_approve[] = {
 // This is the button handler for the approval screen. If the user approves,
 // it generates and sends the public key.
 static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, unsigned int button_mask_counter) {
+    UNUSED(button_mask_counter);
+
     cx_ecfp_public_key_t public;
     uint16_t tx = 0;
 
@@ -56,6 +60,10 @@ static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, u
             ui_idle();
 
             break;
+
+        default:
+            // Do nothing
+            break;
     }
 
     return 0;
@@ -72,10 +80,10 @@ static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, u
 void handle_get_public_key(
     uint8_t p1,
     uint8_t p2,
-    uint8_t* buffer,
+    const uint8_t* const buffer,
     uint16_t len,
     /* out */ volatile unsigned int* flags,
-    /* out */ volatile unsigned int* tx
+    /* out */ volatile const unsigned int* const tx
 ) {
     UNUSED(p1);
     UNUSED(p2);

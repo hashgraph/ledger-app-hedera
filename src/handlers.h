@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDGER_HEDERA_HANDLERS_H
+#define LEDGER_HEDERA_HANDLERS_H 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -25,3 +26,5 @@ extern handler_fn_t handle_get_public_key;
 extern handler_fn_t handle_sign_transaction;
 
 extern handler_fn_t* lookup_handler(uint8_t ins);
+
+#endif // LEDGER_HEDERA_HANDLERS_H

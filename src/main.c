@@ -1,7 +1,7 @@
-#include "utils.h"
-#include "ui.h"
-#include "handlers.h"
 #include "errors.h"
+#include "handlers.h"
+#include "ui.h"
+#include "utils.h"
 
 #define CLA 0xE0
 

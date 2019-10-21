@@ -165,8 +165,8 @@ listvariants:
 
 # check:
 check:
-	@ clang-tidy -header-filter=src/.* \
-		$(foreach path, $(APP_SOURCE_PATH), $(shell find $(path) -name "*.c")) -- \
+	@ clang-tidy \
+		$(foreach path, $(APP_SOURCE_PATH), $(shell find $(path) -name "*.c" -and -not -name "pb*" -and -not -name "glyphs*")) -- \
 		$(CFLAGS) \
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))

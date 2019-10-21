@@ -1,1 +1,10 @@
-Checks: '*,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-hicpp-signed-bitwise,-cppcoreguidelines-interfaces-global-init,-hicpp-no-assembler'
+---
+Checks: "*,\
+-cppcoreguidelines-avoid-magic-numbers,\
+-readability-magic-numbers,\
+-hicpp-signed-bitwise,\
+-cppcoreguidelines-interfaces-global-init,\
+-hicpp-no-assembler,\
+-llvm-header-guard,\
+"
+HeaderFilterRegex: 'src/*\.h$'

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDGER_HEDERA_GLOBALS_H
+#define LEDGER_HEDERA_GLOBALS_H 1
 
 #include "os.h"
 #include "os_io_seproxyhal.h"
@@ -11,10 +12,4 @@
 #define FULL_ADDRESS_LENGTH 54
 #define BIP32_PATH 5
 
-// ux is a magic global variable implicitly referenced by the UX_ macros. Apps
-// should never need to reference it directly.
-extern ux_state_t ux;
-
-// display stepped screens
-extern unsigned int ux_step;
-extern unsigned int ux_step_count;
+#endif // LEDGER_HEDERA_GLOBALS_H
