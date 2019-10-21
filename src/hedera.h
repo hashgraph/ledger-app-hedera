@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "TransactionBody.pb.h"
 
-#define MAX_TX_SIZE 4096
+#define MAX_TX_SIZE 2048
 
 extern void hedera_derive_keypair(
     uint32_t index,
