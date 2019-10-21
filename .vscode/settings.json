@@ -3,6 +3,6 @@
     "python.linting.pylamaEnabled": true,
     "python.linting.enabled": true,
     "files.associations": {
-        ".h": "c"
+        "*.h": "c"
     }
 }
