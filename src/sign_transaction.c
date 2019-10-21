@@ -128,23 +128,21 @@ void handle_sign_transaction(
     os_memset(ctx.raw_transaction, 0, sizeof(ctx.raw_transaction));
     os_memcpy(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
 
-    // Try to parse transaction body
-    // TODO: Fix!
+    // Parse transaction body
     HederaTransactionBody hedera_tx = HederaTransactionBody_init_zero;
 
     pb_istream_t stream = pb_istream_from_buffer(
-        (const pb_byte_t *) &ctx.raw_transaction, 
-        (size_t) ctx.raw_transaction_length
+        ctx.raw_transaction, 
+        ctx.raw_transaction_length
     );
-    
 
-    uint8_t status = pb_decode(
-        &stream, 
+    bool status = pb_decode(
+        &stream,
         HederaTransactionBody_fields, 
         &hedera_tx
     );
 
-    if (status == 0) {
+    if (!status) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
