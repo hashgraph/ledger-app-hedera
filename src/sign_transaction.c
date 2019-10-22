@@ -84,6 +84,10 @@ void handle_sign_transaction(
     UNUSED(len);
     UNUSED(tx);
 
+    // Get Key Index and Prepare Message
+    ctx.key_index = U4LE(buffer, 0);
+    // snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
+
     // Signing happens in two steps:
     // P1_FIRST = approval of transaction information
     // P1_LAST = sign transaction with key_index
@@ -94,10 +98,6 @@ void handle_sign_transaction(
         snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
         snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
     }
-
-    // Get Key Index and Prepare Message
-    ctx.key_index = U4LE(buffer, 0);
-    // snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
 
     ctx.raw_transaction_length = len - 4;
     if (ctx.raw_transaction_length > MAX_TX_SIZE) {
