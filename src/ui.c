@@ -5,7 +5,7 @@
 
 // This is a forward declaration since [menu_about] needs to know about
 // [menu_main] to go back to it.
-static const ux_menu_entry_t menu_main[3];
+static const ux_menu_entry_t menu_main[4];
 
 static const ux_menu_entry_t menu_about[3] = {
     {
@@ -33,7 +33,17 @@ static const ux_menu_entry_t menu_about[3] = {
     UX_MENU_END
 };
 
-static const ux_menu_entry_t menu_main[3] = {
+static const ux_menu_entry_t menu_main[4] = {
+    {
+        .menu = NULL,
+        .callback = NULL,
+        .userid = 0,
+        .icon = NULL,
+        .line1 = "Awaiting",
+        .line2 = "Commands",
+        .text_x = 0,
+        .icon_x = 0
+    },
     {
         .menu = menu_about,
         .callback = NULL,

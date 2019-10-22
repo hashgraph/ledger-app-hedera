@@ -10,6 +10,6 @@ src/pb_*
 # Editors
 .idea
 
-# Protobuf
-proto/*.c
-proto/*.h
+# Protos
+# proto/*.c
+# proto/*.h
