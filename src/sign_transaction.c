@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include "os.h"
 #include "os_io_seproxyhal.h"
@@ -19,9 +20,7 @@ static struct sign_tx_context_t {
     // ui_transfer_tx_approve
     char ui_tx_approve_l1[40];
     char ui_tx_approve_l2[40];
-
-    // ui_sign_tx_approve
-    char ui_sign_tx_approve_l2[40];
+    bool ui_tx_approved;
 
     // Raw transaction from APDU
     uint8_t raw_transaction[MAX_TX_SIZE];
@@ -41,60 +40,38 @@ static const bagl_element_t ui_tx_approve[] = {
     UI_TEXT(0x00, 0, 26, 128, ctx.ui_tx_approve_l2)
 };
 
-static const bagl_element_t ui_sign_tx_approve[] = {
-    UI_BACKGROUND(),
-    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
-    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
-
-    // X                  O
-    //   Sign Transaction
-    //   with Key #0?
-
-    UI_TEXT(0x00, 0, 12, 128, "Sign Transaction"),
-    UI_TEXT(0x00, 0, 26, 128, ctx.ui_sign_tx_approve_l2)
-};
-
-// ui_sign_tx_approve
-static unsigned int ui_sign_tx_approve_button(
-    unsigned int button_mask, 
-    unsigned int button_mask_counter
-) {
-    uint16_t tx = 0;
-
-    switch (button_mask) {
-        case BUTTON_EVT_RELEASED | BUTTON_LEFT:  // Reject
-            io_exchange_with_code(EXCEPTION_USER_REJECTED, tx);
-            ui_idle();
-            break;
-
-        case BUTTON_EVT_RELEASED | BUTTON_RIGHT:  // Approve
-            tx += hedera_sign(
-                ctx.key_index, 
-                ctx.raw_transaction, 
-                ctx.raw_transaction_length, 
-                G_io_apdu_buffer
-            );
-
-            io_exchange_with_code(EXCEPTION_OK, tx);  // flush
-            ui_idle();
-            break;
-    }
-
-    return 0;
-}
-
 static unsigned int ui_tx_approve_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
+    uint16_t tx = 0;
+
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
             io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
             ui_idle();
             break;
 
+        // Chained UX_DISPLAY calls not allowed, instead, change text and redisplay
+        // then, confirm or deny on signing step
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            UX_DISPLAY(ui_sign_tx_approve, NULL);
+            if (!ctx.ui_tx_approved) {  // Redisplay once for 
+                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
+                snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
+                ctx.ui_tx_approved = true;
+                UX_REDISPLAY();
+            } else {
+                tx += hedera_sign(
+                    ctx.key_index, 
+                    ctx.raw_transaction, 
+                    ctx.raw_transaction_length, 
+                    G_io_apdu_buffer
+                );
+
+                io_exchange_with_code(EXCEPTION_OK, tx);
+                ui_idle();
+            }
+            
             break;
     }
 
@@ -117,7 +94,7 @@ void handle_sign_transaction(
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
-    snprintf(ctx.ui_sign_tx_approve_l2, 40, "with Key #%d?", ctx.key_index);
+    // snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
 
     ctx.raw_transaction_length = len - 4;
     if (ctx.raw_transaction_length > MAX_TX_SIZE) {
@@ -125,11 +102,10 @@ void handle_sign_transaction(
     }
 
     // Extract Transaction Message
-    os_memset(ctx.raw_transaction, 0, sizeof(ctx.raw_transaction));
-    os_memcpy(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
+    os_memmove(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
 
     // Parse transaction body
-    HederaTransactionBody hedera_tx = HederaTransactionBody_init_zero;
+    HederaTransactionBody hedera_tx = HederaTransactionBody_init_default;
 
     pb_istream_t stream = pb_istream_from_buffer(
         ctx.raw_transaction, 
@@ -146,10 +122,12 @@ void handle_sign_transaction(
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
+    ctx.ui_tx_approved = false;
+
     switch (hedera_tx.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
-            snprintf(ctx.ui_tx_approve_l2, 40, "with %llu tħ?", hedera_tx.data.cryptoCreateAccount.initialBalance);
+            snprintf(ctx.ui_tx_approve_l2, 40, "with %u tħ?", (uint32_t)hedera_tx.data.cryptoCreateAccount.initialBalance);
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
@@ -174,17 +152,17 @@ void handle_sign_transaction(
                 snprintf(
                     ctx.ui_tx_approve_l2, 
                     40, 
-                    "%llu.%llu.%llu?", 
-                    accountAmounts[0].accountID.shardNum,
-                    accountAmounts[0].accountID.realmNum,
-                    accountAmounts[0].accountID.accountNum
+                    "%u.%u.%u?", 
+                    (uint32_t)accountAmounts[0].accountID.shardNum,
+                    (uint32_t)accountAmounts[0].accountID.realmNum,
+                    (uint32_t)accountAmounts[0].accountID.accountNum
                 );
             } else {
                 snprintf(
                     ctx.ui_tx_approve_l1, 
                     40, 
-                    "Transfer %llu tħ", 
-                    accountAmounts[0].amount
+                    "Transfer %u tħ", 
+                    (uint32_t)accountAmounts[0].amount
                 );
 
                 int toIndex = 1;
@@ -197,13 +175,13 @@ void handle_sign_transaction(
 
                 snprintf(
                     ctx.ui_tx_approve_l2, 40, 
-                    "from %llu.%llu.%llu to %llu.%llu.%llu?",
-                    accountAmounts[0].accountID.shardNum,
-                    accountAmounts[0].accountID.realmNum,
-                    accountAmounts[0].accountID.accountNum,
-                    accountAmounts[1].accountID.shardNum,
-                    accountAmounts[1].accountID.realmNum,
-                    accountAmounts[1].accountID.accountNum
+                    "from %u.%u.%u to %u.%u.%u?",
+                    (uint32_t)accountAmounts[0].accountID.shardNum,
+                    (uint32_t)accountAmounts[0].accountID.realmNum,
+                    (uint32_t)accountAmounts[0].accountID.accountNum,
+                    (uint32_t)accountAmounts[1].accountID.shardNum,
+                    (uint32_t)accountAmounts[1].accountID.realmNum,
+                    (uint32_t)accountAmounts[1].accountID.accountNum
                 );
             }
         } break;
