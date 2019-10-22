@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "ui.h"
 
-#define MAX_TX_SIZE 2048
+#define MAX_TX_SIZE 512
 
 extern void hedera_derive_keypair(
     uint32_t index,

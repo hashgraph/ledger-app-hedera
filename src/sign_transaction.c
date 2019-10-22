@@ -26,6 +26,9 @@ static struct sign_tx_context_t {
     // Raw transaction from APDU
     uint8_t raw_transaction[MAX_TX_SIZE];
     uint16_t raw_transaction_length;
+
+    // Parsed transaction
+    HederaTransactionBody transaction;
 } ctx;
 
 static const bagl_element_t ui_tx_approve[] = {
@@ -101,22 +104,19 @@ void handle_sign_transaction(
     // Extract Transaction Message
     os_memmove(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
 
-    // Parse transaction body
-    HederaTransactionBody hedera_tx = HederaTransactionBody_init_default;
-
     // Make in memory buffer into stream
     pb_istream_t stream = pb_istream_from_buffer(
         ctx.raw_transaction, 
         ctx.raw_transaction_length
     );
 
-    PRINTF("BEFORE PB_DECODE\n");
+    // PRINTF("BEFORE PB_DECODE\n");
 
     // Decode the Transaction
     bool status = pb_decode(
         &stream,
         HederaTransactionBody_fields, 
-        &hedera_tx
+        &ctx.transaction
     );
 
     PRINTF("AFTER PB_DECODE\n");
@@ -127,16 +127,16 @@ void handle_sign_transaction(
     }
 
     // Which Tx is it?
-    switch (hedera_tx.which_data) {
+    switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
-            snprintf(ctx.ui_tx_approve_l2, 40, "with %u tħ?", (uint32_t)hedera_tx.data.cryptoCreateAccount.initialBalance);
+            snprintf(ctx.ui_tx_approve_l2, 40, "with %u tħ?", (uint32_t)ctx.transaction.data.cryptoCreateAccount.initialBalance);
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
-            HederaAccountAmount* accountAmounts = hedera_tx.data.cryptoTransfer.transfers.accountAmounts;
+            HederaAccountAmount* accountAmounts = ctx.transaction.data.cryptoTransfer.transfers.accountAmounts;
             
-            if (hedera_tx.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
+            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
                 // Unsupported
                 // TODO: Better exception num
                 THROW(EXCEPTION_MALFORMED_APDU);
