@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "os.h"
 #include "debug.h"
 
@@ -16,4 +15,8 @@ void debug_check_stack_canary() {
     if (STACK_CANARY != 0xDEADBEEF) {
         THROW(EXCEPTION_OVERFLOW);
     }
+}
+
+uint32_t debug_get_stack_canary() {
+    return STACK_CANARY;
 }

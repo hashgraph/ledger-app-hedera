@@ -9,11 +9,13 @@
 #include "hedera.h"
 #include "io.h"
 #include "ui.h"
+#include "debug.h"
 #include "utils.h"
 
 static struct get_public_key_context_t {
     uint32_t key_index;
     char key_str[40]; // variable-length
+    cx_ecfp_public_key_t public;
 } ctx;
 
 // Define the approval screen. This is where the user will approve the
@@ -38,23 +40,19 @@ static const bagl_element_t ui_get_public_key_approve[] = {
 static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, unsigned int button_mask_counter) {
     UNUSED(button_mask_counter);
 
-    cx_ecfp_public_key_t public;
-    uint16_t tx = 0;
-
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT: // REJECT
-            io_exchange_with_code(EXCEPTION_USER_REJECTED, tx);
+            io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
             ui_idle();
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
             // Derive the public key and store them in the APDU buffer.
-            hedera_derive_keypair(ctx.key_index, NULL, &public);
-            public_key_to_bytes(G_io_apdu_buffer, &public);
-            tx += 32;
+            hedera_derive_keypair(ctx.key_index, NULL, &ctx.public);
+            public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
 
             // Flush the APDU buffer, sending the response.
-            io_exchange_with_code(EXCEPTION_OK, tx);
+            io_exchange_with_code(EXCEPTION_OK, 32);
 
             // The user now has the public key, return to the idle screen.
             ui_idle();
