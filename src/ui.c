@@ -40,7 +40,7 @@ static const ux_menu_entry_t menu_main[4] = {
         .userid = 0,
         .icon = NULL,
         .line1 = "Awaiting",
-        .line2 = "commands...",
+        .line2 = "Commands",
         .text_x = 0,
         .icon_x = 0
     },
