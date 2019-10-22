@@ -84,22 +84,16 @@ void handle_sign_transaction(
     UNUSED(len);
     UNUSED(tx);
 
-    // Get Key Index and Prepare Message
+    // Key Index
     ctx.key_index = U4LE(buffer, 0);
-    // snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
-
-    // Signing happens in two steps:
-    // P1_FIRST = approval of transaction information
-    // P1_LAST = sign transaction with key_index
+    
+    // Don't Sign (P1_FIRST by default)
     ctx.do_sign = false;
-    if (p1 == P1_LAST) {
-        // Signify "do sign" and change UI text
-        ctx.do_sign = true;
-        snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
-        snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
-    }
 
+    // Raw Tx Length
     ctx.raw_transaction_length = len - 4;
+    
+    // Oops Oof Owie
     if (ctx.raw_transaction_length > MAX_TX_SIZE) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
@@ -110,21 +104,25 @@ void handle_sign_transaction(
     // Parse transaction body
     HederaTransactionBody hedera_tx = HederaTransactionBody_init_default;
 
+    // Make in memory buffer into stream
     pb_istream_t stream = pb_istream_from_buffer(
         ctx.raw_transaction, 
         ctx.raw_transaction_length
     );
 
+    // Decode the Transaction
     bool status = pb_decode(
         &stream,
         HederaTransactionBody_fields, 
         &hedera_tx
     );
 
+    // Oh no couldn't, shit
     if (!status) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
+    // Which Tx is it?
     switch (hedera_tx.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
@@ -140,52 +138,65 @@ void handle_sign_transaction(
                 THROW(EXCEPTION_MALFORMED_APDU);
             }
 
-            if (accountAmounts[0].amount == 0) {
-                // Trying to send 0 is special-cased as an account ID confirmation
-                // The SENDER or the Id we are confirming is the first one
+            if (p1 == P1_LAST) {
+                // Signify "do sign" and change UI text
+                ctx.do_sign = true;
+                
+                // Format For Signing a Transaction
+                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
+                snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
+            } else if (p1 == P1_FIRST) {
+                // Give user specific Transaction information (don't "do sign")
+                if (accountAmounts[0].amount == 0) {
+                    // Trying to send 0 is special-cased as an account ID confirmation
+                    // The SENDER or the Id we are confirming is the first one
 
-                snprintf(
-                    ctx.ui_tx_approve_l1, 
-                    40, 
-                    "Confirm Account ID"
-                );
+                    snprintf(
+                        ctx.ui_tx_approve_l1, 
+                        40, 
+                        "Confirm Account ID"
+                    );
 
-                snprintf(
-                    ctx.ui_tx_approve_l2, 
-                    40, 
-                    "%u.%u.%u?", 
-                    (uint32_t)accountAmounts[0].accountID.shardNum,
-                    (uint32_t)accountAmounts[0].accountID.realmNum,
-                    (uint32_t)accountAmounts[0].accountID.accountNum
-                );
-            } else {
-                snprintf(
-                    ctx.ui_tx_approve_l1, 
-                    40, 
-                    "Transfer %u tħ", 
-                    (uint32_t)accountAmounts[0].amount
-                );
+                    snprintf(
+                        ctx.ui_tx_approve_l2, 
+                        40, 
+                        "%u.%u.%u?", 
+                        (uint32_t)accountAmounts[0].accountID.shardNum,
+                        (uint32_t)accountAmounts[0].accountID.realmNum,
+                        (uint32_t)accountAmounts[0].accountID.accountNum
+                    );
+                } else {
+                    snprintf(
+                        ctx.ui_tx_approve_l1, 
+                        40, 
+                        "Transfer %u tħ", 
+                        (uint32_t)accountAmounts[0].amount
+                    );
 
-                int toIndex = 1;
-                int fromIndex = 0;
+                    // XOR to find sender based on positive tx amount
+                    int toIndex = 1;
+                    int fromIndex = 0;
 
-                if (accountAmounts[0].amount > 0) {
-                    toIndex = 0;
-                    fromIndex = 1;
+                    if (accountAmounts[0].amount > 0) {
+                        toIndex = 0;
+                        fromIndex = 1;
+                    }
+
+                    snprintf(
+                        ctx.ui_tx_approve_l2, 40, 
+                        "from %u.%u.%u to %u.%u.%u?",
+                        (uint32_t)accountAmounts[0].accountID.shardNum,
+                        (uint32_t)accountAmounts[0].accountID.realmNum,
+                        (uint32_t)accountAmounts[0].accountID.accountNum,
+                        (uint32_t)accountAmounts[1].accountID.shardNum,
+                        (uint32_t)accountAmounts[1].accountID.realmNum,
+                        (uint32_t)accountAmounts[1].accountID.accountNum
+                    );
                 }
-
-                snprintf(
-                    ctx.ui_tx_approve_l2, 40, 
-                    "from %u.%u.%u to %u.%u.%u?",
-                    (uint32_t)accountAmounts[0].accountID.shardNum,
-                    (uint32_t)accountAmounts[0].accountID.realmNum,
-                    (uint32_t)accountAmounts[0].accountID.accountNum,
-                    (uint32_t)accountAmounts[1].accountID.shardNum,
-                    (uint32_t)accountAmounts[1].accountID.realmNum,
-                    (uint32_t)accountAmounts[1].accountID.accountNum
-                );
+            } else {
+                THROW(EXCEPTION_MALFORMED_APDU);
             }
-        } break;
+            } break;
 
         default:
             // Unsupported
