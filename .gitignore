@@ -11,5 +11,5 @@ src/pb_*
 .idea
 
 # Protos
-# proto/*.c
-# proto/*.h
+proto/*.c
+proto/*.h
