@@ -10,6 +10,7 @@
 #include "hedera.h"
 #include "pb.h"
 #include "pb_decode.h"
+#include "handlers.h"
 #include "utils.h"
 
 // Define context for UI interaction
@@ -20,7 +21,7 @@ static struct sign_tx_context_t {
     // ui_transfer_tx_approve
     char ui_tx_approve_l1[40];
     char ui_tx_approve_l2[40];
-    bool ui_tx_approved;
+    bool do_sign;
 
     // Raw transaction from APDU
     uint8_t raw_transaction[MAX_TX_SIZE];
@@ -33,8 +34,8 @@ static const bagl_element_t ui_tx_approve[] = {
     UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
 
     // X                  O
-    //   Create Account
-    //   with X Hbar?
+    //   Line 1
+    //   Line 2
 
     UI_TEXT(0x00, 0, 12, 128, ctx.ui_tx_approve_l1),
     UI_TEXT(0x00, 0, 26, 128, ctx.ui_tx_approve_l2)
@@ -52,26 +53,18 @@ static unsigned int ui_tx_approve_button(
             ui_idle();
             break;
 
-        // Chained UX_DISPLAY calls not allowed, instead, change text and redisplay
-        // then, confirm or deny on signing step
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            if (!ctx.ui_tx_approved) {  // Redisplay once for 
-                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
-                snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
-                ctx.ui_tx_approved = true;
-                UX_REDISPLAY();
-            } else {
+            if (ctx.do_sign) {
                 tx += hedera_sign(
                     ctx.key_index, 
                     ctx.raw_transaction, 
                     ctx.raw_transaction_length, 
                     G_io_apdu_buffer
                 );
-
-                io_exchange_with_code(EXCEPTION_OK, tx);
-                ui_idle();
             }
             
+            io_exchange_with_code(EXCEPTION_OK, tx);
+            ui_idle();
             break;
     }
 
@@ -87,10 +80,20 @@ void handle_sign_transaction(
     /* out */ volatile unsigned int* flags,
     /* out */ volatile unsigned int* tx
 ) {
-    UNUSED(p1);
     UNUSED(p2);
     UNUSED(len);
     UNUSED(tx);
+
+    // Signing happens in two steps:
+    // P1_FIRST = approval of transaction information
+    // P1_LAST = sign transaction with key_index
+    ctx.do_sign = false;
+    if (p1 == P1_LAST) {
+        // Signify "do sign" and change UI text
+        ctx.do_sign = true;
+        snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
+        snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
+    }
 
     // Get Key Index and Prepare Message
     ctx.key_index = U4LE(buffer, 0);
@@ -121,8 +124,6 @@ void handle_sign_transaction(
     if (!status) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
-
-    ctx.ui_tx_approved = false;
 
     switch (hedera_tx.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:

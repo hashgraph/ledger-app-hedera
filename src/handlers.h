@@ -12,6 +12,11 @@
 #define INS_GET_PUBLIC_KEY 0x02
 #define INS_SIGN_TRANSACTION 0x04
 
+// Arbitrary Flags that can be used to control app behavior
+// Control flow can depend on received P1 APDU arguments
+#define P1_FIRST 0x01
+#define P1_LAST 0x08
+
 typedef void handler_fn_t(
     uint8_t p1,
     uint8_t p2,
