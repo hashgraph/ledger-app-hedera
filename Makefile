@@ -163,10 +163,23 @@ dep/%.d: %.c Makefile
 listvariants:
 	@echo VARIANTS COIN nanopb
 
-# check:
 check:
 	@ clang-tidy \
 		$(foreach path, $(APP_SOURCE_PATH), $(shell find $(path) -name "*.c" -and -not -name "pb*" -and -not -name "glyphs*")) -- \
 		$(CFLAGS) \
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))
+
+vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
+	@ make -C vendor/ledger-nanopb/generator/proto
+
+.PHONY: proto
+proto: vendor/ledger-nanopb/generator/proto/nanopb_pb2.py
+	@ protoc \
+		--plugin=protoc-gen-nanopb=vendor/ledger-nanopb/generator/protoc-gen-nanopb \
+		--nanopb_out=proto/ \
+		-I=proto/ \
+		-I=vendor/ledger-nanopb/generator/proto \
+		proto/*.proto
+
+	@ cp vendor/ledger-nanopb/*.c src/
