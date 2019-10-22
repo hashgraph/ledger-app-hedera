@@ -110,7 +110,7 @@ void handle_sign_transaction(
         ctx.raw_transaction_length
     );
 
-    // PRINTF("BEFORE PB_DECODE\n");
+    PRINTF("BEFORE PB_DECODE\n");
 
     // Decode the Transaction
     bool status = pb_decode(

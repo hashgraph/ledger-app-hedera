@@ -1,6 +1,7 @@
 #include "errors.h"
 #include "handlers.h"
 #include "ui.h"
+#include "io.h"
 #include "utils.h"
 
 #define CLA 0xE0
@@ -108,7 +109,8 @@ __attribute__((section(".boot"))) int main() {
     // exit critical section
     __asm volatile("cpsie i");
 
-    // ensure exception will work as planned
+    debug_init_stack_canary();
+
     os_boot();
 
     for (;;) {

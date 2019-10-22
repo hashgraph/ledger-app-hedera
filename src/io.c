@@ -1,5 +1,6 @@
 #include "os.h"
 #include "os_io_seproxyhal.h"
+#include "debug.h"
 
 // Everything below this point is Ledger magic. And the magic isn't well-
 // documented, so if you want to understand it, you'll need to read the
@@ -14,6 +15,9 @@ void io_seproxyhal_display(const bagl_element_t *element) {
 
 unsigned char io_event(unsigned char channel) {
     UNUSED(channel);
+
+    // Ledger docs recommend checking the canary on each io_event
+    debug_check_stack_canary();
 
     // nothing done with the event, throw an error on the transport layer if
     // needed
