@@ -3,14 +3,5 @@ syntax = "proto3";
 import "BasicTypes.proto";
 
 message HederaCryptoCreateTransactionBody {
-    HederaKey key = 1;
     uint64 initialBalance = 2;
-    HederaAccountID proxyAccountID = 3;
-    uint64 sendRecordThreshold = 6;
-    uint64 receiveRecordThreshold = 7;
-    bool receiverSigRequired = 8;
-    HederaDuration autoRenewPeriod = 9;
-    HederaShardID shardID = 10;
-    HederaRealmID realmID = 11;
-    HederaKey newRealmAdminKey = 12;
 }
