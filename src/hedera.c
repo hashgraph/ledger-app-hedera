@@ -21,13 +21,37 @@ void hedera_derive_keypair(
     path[3] = 0x80000000;
     path[4] = 0x80000000;
 
-    os_perso_derive_node_bip32_seed_key(HDW_ED25519_SLIP10, CX_CURVE_Ed25519, path, 5, seed, NULL, NULL, 0);
+    os_perso_derive_node_bip32_seed_key(
+        HDW_ED25519_SLIP10, 
+        CX_CURVE_Ed25519, 
+        path, 
+        5, 
+        seed, 
+        NULL, 
+        NULL, 
+        0
+    );
 
-    cx_ecfp_init_private_key(CX_CURVE_Ed25519, seed, sizeof(seed), &pk);
+    cx_ecfp_init_private_key(
+        CX_CURVE_Ed25519, 
+        seed, 
+        sizeof(seed), 
+        &pk
+    );
 
     if (public) {
-        cx_ecfp_init_public_key(CX_CURVE_Ed25519, NULL, 0, public);
-        cx_ecfp_generate_pair(CX_CURVE_Ed25519, public, &pk, 1);
+        cx_ecfp_init_public_key(
+            CX_CURVE_Ed25519, 
+            NULL, 
+            0, 
+            public
+        );
+        cx_ecfp_generate_pair(
+            CX_CURVE_Ed25519, 
+            public, 
+            &pk, 
+            1
+        );
     }
 
     if (secret) {
@@ -78,11 +102,14 @@ char* hedera_format_tinybar(uint64_t tinybar) {
     #define HBAR_BUF_SIZE 15
 
     static char buf[HBAR_BUF_SIZE];
+    static uint64_t hbar;
+    static uint64_t hbar_f;
+    static int cnt;
 
-    uint64_t hbar = (tinybar / HBAR);
-    uint64_t hbar_f = (tinybar % HBAR * 10000 / HBAR);
+    hbar = (tinybar / HBAR);
+    hbar_f = (tinybar % HBAR * 10000 / HBAR);
 
-    int cnt = snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
+    cnt = snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
 
     if (hbar_f != 0) {
         cnt += snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4llu", hbar_f);
