@@ -56,7 +56,7 @@ DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=6 IO_HID_EP_LENGTH=
 DEFINES   += APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSION_P=$(APPVERSION_P)
 
 # vendor/ledger-nanopb
-DFEFINES  += PB_BUFFER_ONLY
+DFEFINES  += PB_BUFFER_ONLY=1 PB_FIELD_32BIT=1
 
 # vendor/printf
 DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL PRINTF_DISABLE_SUPPORT_PTRDIFF_T
@@ -182,8 +182,8 @@ check:
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))
 
-vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
-	@ make -C vendor/ledger-nanopb/generator/proto
+ vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
+ 	@ make -C vendor/ledger-nanopb/generator/proto
 
 # TODO: Figure out a way to do this without copying .c files
 .PHONY: proto
