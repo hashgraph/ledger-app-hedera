@@ -22,10 +22,15 @@
 static struct sign_tx_context_t {
     // ui common
     uint32_t key_index;
+
+    // temp variables
+    uint8_t transfer_to_index;
     
     // ui_transfer_tx_approve
     char ui_tx_approve_l1[40];
     char ui_tx_approve_l2[40];
+
+    // what step of the UI flow are we on
     bool do_sign;
 
     // Raw transaction from APDU
@@ -53,24 +58,23 @@ static unsigned int ui_tx_approve_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
-    uint16_t tx = 0;
-
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
             io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
             ui_idle();
+
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
             if (ctx.do_sign) {
-                tx += hedera_sign(
+                hedera_sign(
                     ctx.key_index, 
                     ctx.raw_transaction, 
                     ctx.raw_transaction_length, 
                     G_io_apdu_buffer
                 );
             
-                io_exchange_with_code(EXCEPTION_OK, tx);
+                io_exchange_with_code(EXCEPTION_OK, 64);
                 ui_idle();
             } else {
                 // Signify "do sign" and change UI text
@@ -126,14 +130,12 @@ void handle_sign_transaction(
     );
 
     // Decode the Transaction
-    bool status = pb_decode(
+    if (!pb_decode(
         &stream,
         HederaTransactionBody_fields, 
         &ctx.transaction
-    );
-
-    // Oh no couldn't, shit
-    if (!status) {
+    )) {
+        // Oh no couldn't ...
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
@@ -148,15 +150,13 @@ void handle_sign_transaction(
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
-            HederaAccountAmount* accountAmounts = ctx.transaction.data.cryptoTransfer.transfers.accountAmounts;
-            
             if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
                 // Unsupported
                 // TODO: Better exception num
                 THROW(EXCEPTION_MALFORMED_APDU);
             }
 
-            if (accountAmounts[0].amount == 0) {
+            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0) {
                 // Trying to send 0 is special-cased as an account ID confirmation
                 // The SENDER or the Id we are confirming is the first one
 
@@ -170,33 +170,31 @@ void handle_sign_transaction(
                     ctx.ui_tx_approve_l2, 
                     40, 
                     "%llu.%llu.%llu?", 
-                    accountAmounts[0].accountID.shardNum,
-                    accountAmounts[0].accountID.realmNum,
-                    accountAmounts[0].accountID.accountNum
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
                 );
             } else {
-                // XOR to find sender based on positive tx amount
-                int toIndex = 1;
-                int fromIndex = 0;
-
-                if (accountAmounts[0].amount > 0) {
-                    toIndex = 0;
-                    fromIndex = 1;
+                // Find sender based on positive tx amount
+                ctx.transfer_to_index = 1;
+                if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {
+                    ctx.transfer_to_index = 0;
                 }
 
                 snprintf(
                     ctx.ui_tx_approve_l1, 
                     40, 
                     "Transfer %s hbar", 
-                    hedera_format_tinybar(accountAmounts[toIndex].amount)
+                    hedera_format_tinybar(
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
                 );
 
                 snprintf(
                     ctx.ui_tx_approve_l2, 40, 
                     "to %llu.%llu.%llu?",
-                    accountAmounts[toIndex].accountID.shardNum,
-                    accountAmounts[toIndex].accountID.realmNum,
-                    accountAmounts[toIndex].accountID.accountNum
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
                 );
             }
         } break;

@@ -38,7 +38,7 @@ void hedera_derive_keypair(
     os_memset(&pk, 0, sizeof(pk));
 }
 
-uint16_t hedera_sign(
+void hedera_sign(
     uint32_t index,
     const uint8_t* tx,
     uint8_t tx_len,
@@ -68,8 +68,6 @@ uint16_t hedera_sign(
 
     // Clear private key
     os_memset(&pk, 0, sizeof(pk));
-
-    return 64;
 }
 
 #define HBAR 100000000

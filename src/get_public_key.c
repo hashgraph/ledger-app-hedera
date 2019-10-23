@@ -42,6 +42,7 @@ static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, u
         case BUTTON_EVT_RELEASED | BUTTON_LEFT: // REJECT
             io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
             ui_idle();
+
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
