@@ -182,8 +182,8 @@ check:
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))
 
- vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
- 	@ make -C vendor/ledger-nanopb/generator/proto
+vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
+	@ make -C vendor/ledger-nanopb/generator/proto
 
 # TODO: Figure out a way to do this without copying .c files
 .PHONY: proto
