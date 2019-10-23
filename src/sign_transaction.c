@@ -115,16 +115,12 @@ void handle_sign_transaction(
         ctx.raw_transaction_length
     );
 
-    PRINTF("BEFORE PB_DECODE\n");
-
     // Decode the Transaction
     bool status = pb_decode(
         &stream,
         HederaTransactionBody_fields, 
         &ctx.transaction
     );
-
-    PRINTF("AFTER PB_DECODE\n");
 
     // Oh no couldn't, shit
     if (!status) {
