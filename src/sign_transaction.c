@@ -69,10 +69,20 @@ static unsigned int ui_tx_approve_button(
                     ctx.raw_transaction_length, 
                     G_io_apdu_buffer
                 );
-            }
             
-            io_exchange_with_code(EXCEPTION_OK, tx);
-            ui_idle();
+                io_exchange_with_code(EXCEPTION_OK, tx);
+                ui_idle();
+            } else {
+                // Signify "do sign" and change UI text
+                ctx.do_sign = true;
+                
+                // Format For Signing a Transaction
+                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction");
+                snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
+
+                UX_REDISPLAY();
+            }
+
             break;
     }
 
@@ -95,7 +105,7 @@ void handle_sign_transaction(
     // Key Index
     ctx.key_index = U4LE(buffer, 0);
     
-    // Don't Sign (P1_FIRST by default)
+    // At first we don't sign and we are presenting the transdaction approval
     ctx.do_sign = false;
 
     // Raw Tx Length
@@ -146,62 +156,50 @@ void handle_sign_transaction(
                 THROW(EXCEPTION_MALFORMED_APDU);
             }
 
-            if (p1 == P1_LAST) {
-                // Signify "do sign" and change UI text
-                ctx.do_sign = true;
-                
-                // Format For Signing a Transaction
-                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction with");
-                snprintf(ctx.ui_tx_approve_l2, 40, "Key #%u?", ctx.key_index);
-            } else if (p1 == P1_FIRST) {
-                // Give user specific Transaction information (don't "do sign")
-                if (accountAmounts[0].amount == 0) {
-                    // Trying to send 0 is special-cased as an account ID confirmation
-                    // The SENDER or the Id we are confirming is the first one
+            if (accountAmounts[0].amount == 0) {
+                // Trying to send 0 is special-cased as an account ID confirmation
+                // The SENDER or the Id we are confirming is the first one
 
-                    snprintf(
-                        ctx.ui_tx_approve_l1, 
-                        40, 
-                        "Confirm Account ID"
-                    );
+                snprintf(
+                    ctx.ui_tx_approve_l1, 
+                    40, 
+                    "Confirm Account"
+                );
 
-                    snprintf(
-                        ctx.ui_tx_approve_l2, 
-                        40, 
-                        "%llu.%llu.%llu?", 
-                        accountAmounts[0].accountID.shardNum,
-                        accountAmounts[0].accountID.realmNum,
-                        accountAmounts[0].accountID.accountNum
-                    );
-                } else {
-                    // XOR to find sender based on positive tx amount
-                    int toIndex = 1;
-                    int fromIndex = 0;
-
-                    if (accountAmounts[0].amount > 0) {
-                        toIndex = 0;
-                        fromIndex = 1;
-                    }
-
-                    snprintf(
-                        ctx.ui_tx_approve_l1, 
-                        40, 
-                        "Transfer %s hbar", 
-                        hedera_format_tinybar(accountAmounts[toIndex].amount)
-                    );
-
-                    snprintf(
-                        ctx.ui_tx_approve_l2, 40, 
-                        "to %llu.%llu.%llu?",
-                        accountAmounts[toIndex].accountID.shardNum,
-                        accountAmounts[toIndex].accountID.realmNum,
-                        accountAmounts[toIndex].accountID.accountNum
-                    );
-                }
+                snprintf(
+                    ctx.ui_tx_approve_l2, 
+                    40, 
+                    "%llu.%llu.%llu?", 
+                    accountAmounts[0].accountID.shardNum,
+                    accountAmounts[0].accountID.realmNum,
+                    accountAmounts[0].accountID.accountNum
+                );
             } else {
-                THROW(EXCEPTION_MALFORMED_APDU);
+                // XOR to find sender based on positive tx amount
+                int toIndex = 1;
+                int fromIndex = 0;
+
+                if (accountAmounts[0].amount > 0) {
+                    toIndex = 0;
+                    fromIndex = 1;
+                }
+
+                snprintf(
+                    ctx.ui_tx_approve_l1, 
+                    40, 
+                    "Transfer %s hbar", 
+                    hedera_format_tinybar(accountAmounts[toIndex].amount)
+                );
+
+                snprintf(
+                    ctx.ui_tx_approve_l2, 40, 
+                    "to %llu.%llu.%llu?",
+                    accountAmounts[toIndex].accountID.shardNum,
+                    accountAmounts[toIndex].accountID.realmNum,
+                    accountAmounts[toIndex].accountID.accountNum
+                );
             }
-            } break;
+        } break;
 
         default:
             // Unsupported
