@@ -94,5 +94,3 @@ bool pb_field_iter_find(pb_field_iter_t *iter, uint32_t tag)
     /* Searched all the way back to start, and found nothing. */
     return false;
 }
-
-

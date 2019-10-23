@@ -889,11 +889,12 @@ static void pb_message_set_to_defaults(const pb_field_t fields[], void *dest_str
  * Decode all fields *
  *********************/
 
+#define PB_DECODE_STACK_REQUIREMENT 24
 bool checkreturn pb_decode_noinit(pb_istream_t *stream, const pb_field_t fields[], void *dest_struct)
 {
-    uint32_t fields_seen[(PB_MAX_REQUIRED_FIELDS + 31) / 32] = {0, 0};
-    const uint32_t allbits = ~(uint32_t)0;
-    uint32_t extension_range_start = 0;
+    // uint32_t fields_seen[(PB_MAX_REQUIRED_FIELDS + 31) / 32] = {0, 0};
+    // const uint32_t allbits = ~(uint32_t)0;
+    // uint32_t extension_range_start = 0;
     pb_field_iter_t iter;
     
     /* Return value ignored, as empty message types will be correctly handled by
@@ -913,6 +914,7 @@ bool checkreturn pb_decode_noinit(pb_istream_t *stream, const pb_field_t fields[
         }
         if (!pb_field_iter_find(&iter, tag))
         {
+#ifdef PROTO2_SUPPORT
             /* No match found, check if it matches an extension. */
             if (tag >= extension_range_start)
             {
@@ -935,6 +937,7 @@ bool checkreturn pb_decode_noinit(pb_istream_t *stream, const pb_field_t fields[
                     }
                 }
             }
+#endif
         
             /* No match found, skip data */
             if (!pb_skip_field(stream, wire_type))
@@ -942,17 +945,20 @@ bool checkreturn pb_decode_noinit(pb_istream_t *stream, const pb_field_t fields[
             continue;
         }
         
+#ifdef PROTO2_SUPPORT
         if (PB_HTYPE(((const pb_field_t*)PIC(iter.pos))->type) == PB_HTYPE_REQUIRED
             && iter.required_field_index < PB_MAX_REQUIRED_FIELDS)
         {
             uint32_t tmp = ((uint32_t)1 << (iter.required_field_index & 31));
             fields_seen[iter.required_field_index >> 5] |= tmp;
         }
+#endif
         
         if (!decode_field(stream, wire_type, &iter))
             return false;
     }
     
+#ifdef PROTO2_SUPPORT
     /* Check that all required fields were present. */
     {
         /* First figure out the number of required fields by
@@ -994,6 +1000,7 @@ bool checkreturn pb_decode_noinit(pb_istream_t *stream, const pb_field_t fields[
             }
         }
     }
+#endif
     return true;
 }
 

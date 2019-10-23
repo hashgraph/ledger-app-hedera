@@ -12,6 +12,10 @@
 extern "C" {
 #endif
 
+/* Tracks call stack when instrumentation is enabled
+ * Should be set to 0 when instantiating pb_istream_t */
+extern int G_depth;
+
 /* Structure for defining custom input streams. You will need to provide
  * a callback function to read the bytes from your storage, which can be
  * for example a file or a network socket.

@@ -31,7 +31,7 @@
 /* #define PB_NO_ERRMSG 1 */
 
 /* Disable support for custom streams (support only memory buffers). */
-#define PB_BUFFER_ONLY 1
+/* #define PB_BUFFER_ONLY 1 */
 
 /* Switch back to the old-style callback function signature.
  * This was the default until nanopb-0.2.1. */
@@ -571,7 +571,14 @@ struct pb_extension_s {
  * PB_GET_ERROR() always returns a pointer to a string.
  * PB_RETURN_ERROR() sets the error and returns false from current
  *                   function.
+ * G_depth is a global that should be initialized to 0 when 
+ * creating an input stream. It helps tracking the level of the 
+ * call stack when instrumentation is enabled 
+ * (set `INTRUMENT_FUNCTION += -finstrument-functions` in your 
+ * Makfile to do so)
  */
+extern int G_depth;
+
 #ifdef PB_NO_ERRMSG
 #define PB_SET_ERROR(stream, msg) PB_UNUSED(stream)
 #define PB_GET_ERROR(stream) "(errmsg disabled)"
