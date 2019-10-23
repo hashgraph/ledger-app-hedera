@@ -66,3 +66,24 @@ uint16_t hedera_sign(
 
     return 64;
 }
+
+#define HBAR 100000000
+
+char* hedera_format_tinybar(uint64_t tinybar) {
+    #define HBAR_BUF_SIZE 15
+
+    static char buf[HBAR_BUF_SIZE];
+
+    uint64_t hbar = (tinybar / HBAR);
+    uint64_t hbar_f = (tinybar % HBAR * 10000 / HBAR);
+
+    int cnt = snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
+
+    if (hbar_f != 0) {
+        cnt += snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4llu", hbar_f);
+    }
+
+    buf[cnt] = 0;
+
+    return buf;
+}

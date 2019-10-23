@@ -131,7 +131,10 @@ void handle_sign_transaction(
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
-            snprintf(ctx.ui_tx_approve_l2, 40, "with %llu tħ?", ctx.transaction.data.cryptoCreateAccount.initialBalance);
+            snprintf(
+                ctx.ui_tx_approve_l2, 40, "with %s ħ?", 
+                hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
+
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
@@ -174,8 +177,8 @@ void handle_sign_transaction(
                     snprintf(
                         ctx.ui_tx_approve_l1, 
                         40, 
-                        "Transfer %llu tħ", 
-                        accountAmounts[0].amount
+                        "Transfer %s ħ", 
+                        hedera_format_tinybar(accountAmounts[0].amount)
                     );
 
                     // XOR to find sender based on positive tx amount

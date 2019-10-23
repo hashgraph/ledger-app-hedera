@@ -24,4 +24,6 @@ extern uint16_t hedera_sign(
     /* out */ uint8_t* result
 );
 
+extern char* hedera_format_tinybar(uint64_t tinybar);
+
 #endif // LEDGER_HEDERA_HEDERA_H
