@@ -44,7 +44,7 @@ endif
 ################
 # Default rule #
 ################
-all: default
+all: proto printf default
 
 ############
 # Platform #
