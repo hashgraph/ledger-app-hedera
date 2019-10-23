@@ -14,3 +14,4 @@ src/printf*
 # Protos
 proto/*.c
 proto/*.h
+*.pyc
