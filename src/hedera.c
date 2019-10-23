@@ -40,15 +40,14 @@ uint16_t hedera_sign(
     /* out */ uint8_t* result
 ) {
     // Get Keys
-    cx_ecfp_private_key_t private_key;
-    hedera_derive_keypair(index, &private_key, NULL);
+    hedera_derive_keypair(index, &pk, NULL);
 
     // Sign Transaction
     // <cx.h> 2283
     // Claims to want Hashes, but other apps use the message itself
     // and complain that the documentation is wrong
     cx_eddsa_sign(
-        &private_key,                    // private key
+        &pk,                    // private key
         0,                               // mode (UNSUPPORTED)
         CX_SHA512,                       // hashID
         tx,                              // hash (really message)
@@ -61,7 +60,7 @@ uint16_t hedera_sign(
     );
 
     // Clear private key
-    os_memset(&private_key, 0, sizeof(private_key));
+    os_memset(&pk, 0, sizeof(pk));
 
     return 64;
 }
