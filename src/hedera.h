@@ -17,7 +17,7 @@ extern void hedera_derive_keypair(
     /* out */ struct cx_ecfp_256_public_key_s* public
 );
 
-extern uint16_t hedera_sign(
+extern void hedera_sign(
     uint32_t index,
     const uint8_t* tx,
     uint8_t tx_len,
