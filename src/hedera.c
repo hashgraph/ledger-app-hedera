@@ -5,15 +5,16 @@
 #include "hedera.h"
 #include "debug.h"
 
-static uint8_t seed[32];
-static cx_ecfp_private_key_t pk;
-static uint32_t path[5];
 
 void hedera_derive_keypair(
     uint32_t index,
     /* out */ cx_ecfp_private_key_t* secret, 
     /* out */ cx_ecfp_public_key_t* public
 ) {
+    static uint8_t seed[32];
+    static uint32_t path[5];
+    static cx_ecfp_private_key_t pk;
+
     path[0] = 44 | 0x80000000;
     path[1] = 3030 | 0x80000000;
     path[2] = index | 0x80000000;
@@ -43,6 +44,8 @@ uint16_t hedera_sign(
     uint8_t tx_len,
     /* out */ uint8_t* result
 ) {
+    static cx_ecfp_private_key_t pk;
+
     // Get Keys
     hedera_derive_keypair(index, &pk, NULL);
 
@@ -51,7 +54,7 @@ uint16_t hedera_sign(
     // Claims to want Hashes, but other apps use the message itself
     // and complain that the documentation is wrong
     cx_eddsa_sign(
-        &pk,                    // private key
+        &pk,                             // private key
         0,                               // mode (UNSUPPORTED)
         CX_SHA512,                       // hashID
         tx,                              // hash (really message)
