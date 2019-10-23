@@ -132,7 +132,7 @@ void handle_sign_transaction(
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
             snprintf(
-                ctx.ui_tx_approve_l2, 40, "with %s ħ?", 
+                ctx.ui_tx_approve_l2, 40, "with %s hbar?", 
                 hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
 
             break;
@@ -174,13 +174,6 @@ void handle_sign_transaction(
                         accountAmounts[0].accountID.accountNum
                     );
                 } else {
-                    snprintf(
-                        ctx.ui_tx_approve_l1, 
-                        40, 
-                        "Transfer %s ħ", 
-                        hedera_format_tinybar(accountAmounts[0].amount)
-                    );
-
                     // XOR to find sender based on positive tx amount
                     int toIndex = 1;
                     int fromIndex = 0;
@@ -191,14 +184,18 @@ void handle_sign_transaction(
                     }
 
                     snprintf(
+                        ctx.ui_tx_approve_l1, 
+                        40, 
+                        "Transfer %s hbar", 
+                        hedera_format_tinybar(accountAmounts[toIndex].amount)
+                    );
+
+                    snprintf(
                         ctx.ui_tx_approve_l2, 40, 
-                        "from %llu.%llu.%llu to %llu.%llu.%llu?",
-                        accountAmounts[0].accountID.shardNum,
-                        accountAmounts[0].accountID.realmNum,
-                        accountAmounts[0].accountID.accountNum,
-                        accountAmounts[1].accountID.shardNum,
-                        accountAmounts[1].accountID.realmNum,
-                        accountAmounts[1].accountID.accountNum
+                        "to %llu.%llu.%llu?",
+                        accountAmounts[toIndex].accountID.shardNum,
+                        accountAmounts[toIndex].accountID.realmNum,
+                        accountAmounts[toIndex].accountID.accountNum
                     );
                 }
             } else {
