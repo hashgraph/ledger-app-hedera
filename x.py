@@ -60,21 +60,3 @@ if sys.argv[2] == 'make':
     # it was typed in the shell
     subprocess.run(sys.argv[2:], check=True, env={
         'BOLOS_SDK': bolos_sdk, 'BOLOS_ENV': bolos_env})
-
-elif sys.argv[2] == 'proto':
-    # Generate C files using protoc from protobufs
-    plugin = path.realpath('vendor/ledger-nanopb/generator/protoc-gen-nanopb')
-    plugin = f'--plugin=protoc-gen-nanopb={plugin}'
-    proto = path.realpath('proto')
-    nanopb = path.realpath('vendor/ledger-nanopb/generator/proto')
-
-    subprocess.run('make', shell=True, check=True, cwd=nanopb)
-    subprocess.run(
-        f'protoc {plugin} --nanopb_out=. -I. -I{nanopb} *.proto',
-        shell=True, check=True,
-        cwd=proto)
-
-    # Copy in .c files from ledger-nanopb
-    # Cry
-    shutil.copy("vendor/ledger-nanopb/pb_common.c", "src/")
-    shutil.copy("vendor/ledger-nanopb/pb_decode.c", "src/")
