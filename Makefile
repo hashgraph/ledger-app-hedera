@@ -51,9 +51,15 @@ all: default
 ############
 
 DEFINES   += OS_IO_SEPROXYHAL
-DEFINES   += HAVE_BAGL HAVE_SPRINTF
+DEFINES   += HAVE_BAGL
 DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=6 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
 DEFINES   += APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSION_P=$(APPVERSION_P)
+
+# vendor/ledger-nanopb
+DFEFINES  += PB_BUFFER_ONLY
+
+# vendor/printf
+DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL
 
 # U2F
 DEFINES   += HAVE_U2F HAVE_IO_U2F
@@ -116,7 +122,13 @@ endif
 
 CC       := $(CLANGPATH)clang
 
-CFLAGS   += -O3 -Os -Iproto -Ivendor/ledger-nanopb/
+CFLAGS   += -O3 -Os -Iproto
+
+# nanopb
+CFLAGS   += -Ivendor/ledger-nanopb/
+
+# printf
+CFLAGS   += -Ivendor/printf/
 
 # enable color from inside a script
 CFLAGS   += -fcolor-diagnostics
@@ -173,6 +185,7 @@ check:
 vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
 	@ make -C vendor/ledger-nanopb/generator/proto
 
+# TODO: Figure out a way to do this without copying .c files
 .PHONY: proto
 proto: vendor/ledger-nanopb/generator/proto/nanopb_pb2.py
 	@ protoc \
@@ -183,3 +196,7 @@ proto: vendor/ledger-nanopb/generator/proto/nanopb_pb2.py
 		proto/*.proto
 
 	@ cp vendor/ledger-nanopb/*.c src/
+
+# TODO: Figure out a way to do this without copying .c files
+printf:
+	@ cp vendor/printf/*.c src/

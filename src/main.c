@@ -3,6 +3,7 @@
 #include "ui.h"
 #include "io.h"
 #include "utils.h"
+#include "debug.h"
 
 #define CLA 0xE0
 

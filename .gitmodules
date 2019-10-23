@@ -7,3 +7,6 @@
 [submodule "vendor/ledger-nanopb"]
         path = vendor/ledger-nanopb
         url = https://github.com/LedgerHQ/ledger-nanopb
+[submodule "vendor/printf"]
+	path = vendor/printf
+	url = https://github.com/mpaland/printf

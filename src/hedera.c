@@ -1,3 +1,5 @@
+#include <os.h>
+
 #include "hedera.h"
 #include "debug.h"
 

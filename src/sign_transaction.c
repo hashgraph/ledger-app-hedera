@@ -1,17 +1,22 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <stdio.h>
-#include "os.h"
-#include "os_io_seproxyhal.h"
+
+#include <os.h>
+#include <os_io_seproxyhal.h>
+
+#include <pb.h>
+#include <pb_decode.h>
+
+#include <printf.h>
+
 #include "errors.h"
 #include "io.h"
 #include "ui.h"
 #include "hedera.h"
-#include "pb.h"
-#include "pb_decode.h"
 #include "handlers.h"
 #include "utils.h"
+#include "TransactionBody.pb.h"
 
 // Define context for UI interaction
 static struct sign_tx_context_t {

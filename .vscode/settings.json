@@ -4,6 +4,8 @@
     "python.linting.enabled": true,
     "files.associations": {
         "*.h": "c",
-        ".clang-tidy": "yaml"
+        ".clang-tidy": "yaml",
+        "string_view": "c",
+        "regex": "c"
     }
 }

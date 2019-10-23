@@ -1,9 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
-#include <os.h>
-#include <os_io_seproxyhal.h>
+#include <printf.h>
 
 #include "errors.h"
 #include "hedera.h"
