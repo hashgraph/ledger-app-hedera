@@ -56,10 +56,11 @@ DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=6 IO_HID_EP_LENGTH=
 DEFINES   += APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSION_P=$(APPVERSION_P)
 
 # vendor/ledger-nanopb
-DFEFINES  += PB_BUFFER_ONLY=1 PB_FIELD_32BIT=1
+DFEFINES  += PB_FIELD_32BIT=1
 
 # vendor/printf
 DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL PRINTF_DISABLE_SUPPORT_PTRDIFF_T
+DEFINES   += PRINTF_NTOA_BUFFER_SIZE=9U PRINTF_FTOA_BUFFER_SIZE=0
 
 # U2F
 DEFINES   += HAVE_U2F HAVE_IO_U2F
@@ -122,7 +123,7 @@ endif
 
 CC       := $(CLANGPATH)clang
 
-CFLAGS   += -O3 -Os -Iproto
+CFLAGS   += -Og -Iproto
 
 # nanopb
 CFLAGS   += -Ivendor/ledger-nanopb/
@@ -136,7 +137,8 @@ CFLAGS   += -fcolor-diagnostics
 AS     := $(GCCPATH)arm-none-eabi-gcc
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
-LDFLAGS  += -O3 -Os
+
+LDFLAGS  += -Og -flto=thin
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)

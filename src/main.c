@@ -113,7 +113,7 @@ void app_main() {
     }
 }
 
-static void app_exit(void) {
+void app_exit(void) {
     BEGIN_TRY_L(exit) {
         TRY_L(exit) {
             os_sched_exit(-1);

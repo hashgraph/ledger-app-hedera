@@ -13,6 +13,7 @@
 #include "errors.h"
 #include "io.h"
 #include "ui.h"
+#include "debug.h"
 #include "hedera.h"
 #include "handlers.h"
 #include "utils.h"
@@ -54,7 +55,7 @@ static const bagl_element_t ui_tx_approve[] = {
     UI_TEXT(0x00, 0, 26, 128, ctx.ui_tx_approve_l2)
 };
 
-static unsigned int ui_tx_approve_button(
+unsigned int ui_tx_approve_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
