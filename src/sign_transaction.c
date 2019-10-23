@@ -135,7 +135,7 @@ void handle_sign_transaction(
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
-            snprintf(ctx.ui_tx_approve_l2, 40, "with %u tħ?", (uint32_t)ctx.transaction.data.cryptoCreateAccount.initialBalance);
+            snprintf(ctx.ui_tx_approve_l2, 40, "with %llu tħ?", ctx.transaction.data.cryptoCreateAccount.initialBalance);
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
@@ -169,17 +169,17 @@ void handle_sign_transaction(
                     snprintf(
                         ctx.ui_tx_approve_l2, 
                         40, 
-                        "%u.%u.%u?", 
-                        (uint32_t)accountAmounts[0].accountID.shardNum,
-                        (uint32_t)accountAmounts[0].accountID.realmNum,
-                        (uint32_t)accountAmounts[0].accountID.accountNum
+                        "%llu.%llu.%llu?", 
+                        accountAmounts[0].accountID.shardNum,
+                        accountAmounts[0].accountID.realmNum,
+                        accountAmounts[0].accountID.accountNum
                     );
                 } else {
                     snprintf(
                         ctx.ui_tx_approve_l1, 
                         40, 
-                        "Transfer %u tħ", 
-                        (uint32_t)accountAmounts[0].amount
+                        "Transfer %llu tħ", 
+                        accountAmounts[0].amount
                     );
 
                     // XOR to find sender based on positive tx amount
@@ -193,13 +193,13 @@ void handle_sign_transaction(
 
                     snprintf(
                         ctx.ui_tx_approve_l2, 40, 
-                        "from %u.%u.%u to %u.%u.%u?",
-                        (uint32_t)accountAmounts[0].accountID.shardNum,
-                        (uint32_t)accountAmounts[0].accountID.realmNum,
-                        (uint32_t)accountAmounts[0].accountID.accountNum,
-                        (uint32_t)accountAmounts[1].accountID.shardNum,
-                        (uint32_t)accountAmounts[1].accountID.realmNum,
-                        (uint32_t)accountAmounts[1].accountID.accountNum
+                        "from %llu.%llu.%llu to %llu.%llu.%llu?",
+                        accountAmounts[0].accountID.shardNum,
+                        accountAmounts[0].accountID.realmNum,
+                        accountAmounts[0].accountID.accountNum,
+                        accountAmounts[1].accountID.shardNum,
+                        accountAmounts[1].accountID.realmNum,
+                        accountAmounts[1].accountID.accountNum
                     );
                 }
             } else {

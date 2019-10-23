@@ -90,7 +90,7 @@ void handle_get_public_key(
     ctx.key_index = U4LE(buffer, 0);
 
     // Prepare the approval screen
-    snprintf(ctx.key_str, 40, "Key #%d?", ctx.key_index);
+    snprintf(ctx.key_str, 40, "Key #%u?", ctx.key_index);
 
     UX_DISPLAY(ui_get_public_key_approve, NULL);
 
