@@ -12,11 +12,6 @@
 #define INS_GET_PUBLIC_KEY 0x02
 #define INS_SIGN_TRANSACTION 0x04
 
-// Arbitrary Flags that can be used to control app behavior
-// Control flow can depend on received P1 APDU arguments
-#define P1_FIRST 0x01
-#define P1_LAST 0x08
-
 typedef void handler_fn_t(
     uint8_t p1,
     uint8_t p2,
@@ -29,7 +24,5 @@ typedef void handler_fn_t(
 extern handler_fn_t handle_get_app_configuration;
 extern handler_fn_t handle_get_public_key;
 extern handler_fn_t handle_sign_transaction;
-
-extern handler_fn_t* lookup_handler(uint8_t ins);
 
 #endif // LEDGER_HEDERA_HANDLERS_H

@@ -50,15 +50,34 @@ void app_main() {
                     THROW(EXCEPTION_MALFORMED_APDU);
                 }
 
-                // lookup and call the requested instruction
-                handler_fn_t* fn = lookup_handler(G_io_apdu_buffer[OFFSET_INS]);
-                if (!fn) {
-                    THROW(EXCEPTION_UNKNOWN_INS);
-                }
+                switch (G_io_apdu_buffer[OFFSET_INS]) {
+                    case INS_GET_APP_CONFIGURATION:
+                        handle_get_app_configuration(
+                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, &tx);
 
-                fn(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
-                   G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
-                   &flags, &tx);
+                        break;
+
+                    case INS_GET_PUBLIC_KEY:
+                        handle_get_public_key(
+                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, &tx);
+
+                        break;
+
+                    case INS_SIGN_TRANSACTION:
+                        handle_sign_transaction(
+                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, &tx);
+
+                        break;
+
+                    default: 
+                        THROW(EXCEPTION_UNKNOWN_INS);
+                }
             }
             CATCH(EXCEPTION_IO_RESET) {
                 THROW(EXCEPTION_IO_RESET);
