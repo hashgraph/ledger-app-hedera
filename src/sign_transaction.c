@@ -17,6 +17,7 @@
 #include "hedera.h"
 #include "handlers.h"
 #include "utils.h"
+
 #include "TransactionBody.pb.h"
 
 // Define context for UI interaction
@@ -39,7 +40,7 @@ static struct sign_tx_context_t {
     uint16_t raw_transaction_length;
 
     // Parsed transaction
-    HederaTransactionBody transaction;
+    proto_TransactionBody transaction;
 } ctx;
 
 static const bagl_element_t ui_tx_approve[] = {
@@ -133,7 +134,7 @@ void handle_sign_transaction(
     // Decode the Transaction
     if (!pb_decode(
         &stream,
-        HederaTransactionBody_fields, 
+        proto_TransactionBody_fields, 
         &ctx.transaction
     )) {
         // Oh no couldn't ...
@@ -142,7 +143,7 @@ void handle_sign_transaction(
 
     // Which Tx is it?
     switch (ctx.transaction.which_data) {
-        case HederaTransactionBody_cryptoCreateAccount_tag:
+        case proto_TransactionBody_cryptoCreateAccount_tag:
             snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
             snprintf(
                 ctx.ui_tx_approve_l2, 40, "with %s hbar?", 
@@ -150,7 +151,7 @@ void handle_sign_transaction(
 
             break;
 
-        case HederaTransactionBody_cryptoTransfer_tag: {
+        case proto_TransactionBody_cryptoTransfer_tag: {
             if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
                 // Unsupported
                 // TODO: Better exception num
@@ -199,7 +200,6 @@ void handle_sign_transaction(
                 );
             }
         } break;
-
         default:
             // Unsupported
             // TODO: Better exception num

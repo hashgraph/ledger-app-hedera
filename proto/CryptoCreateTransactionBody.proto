@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-import "BasicTypes.proto";
-
-message HederaCryptoCreateTransactionBody {
-    uint64 initialBalance = 2;
-}
