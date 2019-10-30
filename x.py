@@ -1,62 +1,112 @@
 #!/usr/bin/env python3
-
-# This script is intended to simplify usage inside of
-# the docker development environment for Ledger
-
-# usage: ./x.py [target] ...
-
-import shutil
+import argparse
+import os
 import sys
 import subprocess
-import os
-from os import path
 
-# Useless if there aren't at least 2 arguments
-if len(sys.argv) < 3:
-    print("usage: x.py <target> <args>")
-    sys.exit(1)
 
-# The #1 argument is always the <target>
-target = sys.argv[1]
+def image_tag(target):
+    return "ledger_dev_{}:latest".format(target)
 
-# Validate that this is an allowed target
-TARGETS = ['x', 's', 'blue']
-if target not in TARGETS:
-    print(f"target '{target}' not one of 's', 'x', or 'blue'")
-    sys.exit(0)
 
-# Check if we are inside the Docker environment
-if sys.argv[0] != '/opt/x.py':
-    # Build the docker environment image
-    out = subprocess.run(
-        'docker build -q .',
-        check=True, shell=True,
-        capture_output=True)
+def bolos_env(target):
+    sdk = "nano{}-secure-sdk".format(target)
 
-    image = out.stdout.decode().strip()
+    if (target == "blue"):
+        sdk = "blue-secure-sdk"
 
-    # Re-run the script from within the docker environment
-    pwd = os.getcwd()
-    cmd = ' '.join(sys.argv[1:])
+    return {
+        "BOLOS_ENV": os.path.realpath('/opt/ledger/env'),
+        "BOLOS_SDK": os.path.realpath('vendor/{}'.format(sdk))
+    }
+
+
+def run_docker(target, command):
+    image_name = image_tag(target)
+    run_command = \
+        "docker run --rm --privileged \
+            -v {pwd}/:/workspace {img} {t} \"{cmd}\"\
+         ".format(
+            pwd=os.getcwd(),
+            img=image_name,
+            t=target,
+            cmd=command
+        ).strip().split()
+    run_command = " ".join(run_command)
+    print(run_command)
     subprocess.run(
-        f'docker run --rm --privileged -v {pwd}:/workspace {image} {cmd}',
-        shell=True, check=True)
+        run_command,
+        shell=True,
+        check=True
+    )
 
-    sys.exit(0)
 
-# Setup BOLOS_SDK and BOLOS_ENV for the target
-if target == 's':
-    bolos_sdk = path.realpath('vendor/nanos-secure-sdk')
-    bolos_env = path.realpath('/opt/ledger/others')
-elif target == 'x':
-    bolos_sdk = path.realpath('vendor/nanox-secure-sdk')
-    bolos_env = path.realpath('/opt/ledger/nanox')
-elif target == 'blue':
-    bolos_sdk = path.realpath('vendor/blue-secure-sdk')
-    bolos_env = path.realpath('/opt/ledger/others')
+def build_docker(target):
+    image_name = image_tag(target)
+    user_id = os.geteuid()
+    group_id = os.getgid()
+    clang_version = "4.0.0"
 
-if sys.argv[2] == 'make':
-    # Now, we run the rest of the arg list as a subcommand as if
-    # it was typed in the shell
-    subprocess.run(sys.argv[2:], check=True, env={
-        'BOLOS_SDK': bolos_sdk, 'BOLOS_ENV': bolos_env})
+    if (target == "x"):
+        clang_version = "7.0.1"
+
+    build_command = \
+        "docker image build -q \
+            -t {name} \
+            --build-arg USER_ID={user} \
+            --build-arg GROUP_ID={group} \
+            --build-arg CLANG_VERSION={clang} .\
+        ".format(
+            name=image_name,
+            user=user_id,
+            group=group_id,
+            clang=clang_version
+        ).strip().split()
+    build_command = " ".join(build_command)
+    print(build_command)
+    subprocess.run(
+        build_command,
+        shell=True,
+        check=True
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run Ledger Development Commands"
+    )
+    parser.add_argument(
+        "target",
+        metavar="<target>",
+        type=str,
+        nargs=1,
+        help="Target Device (s, x, blue)"
+    )
+    parser.add_argument(
+        "command",
+        metavar='"<command>"',
+        type=str,
+        nargs=1,
+        default="make",
+        help="Command to Run (quoted)"
+    )
+
+    args = parser.parse_args()
+    target = args.target[0]
+    command = args.command[0]
+
+    if (sys.argv[0] != '/opt/ledger/x.py'):
+        build_docker(target)
+        run_docker(target, command)
+        sys.exit(0)
+    else:
+        subprocess.run(
+            command,
+            check=True,
+            shell=True,
+            env=bolos_env(target)
+        )
+
+
+if __name__ == "__main__":
+    main()
