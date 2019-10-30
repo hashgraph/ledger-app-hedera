@@ -35,7 +35,7 @@ static const bagl_element_t ui_get_public_key_approve[] = {
 
 // This is the button handler for the approval screen. If the user approves,
 // it generates and sends the public key.
-static unsigned int ui_get_public_key_approve_button(unsigned int button_mask, unsigned int button_mask_counter) {
+unsigned int ui_get_public_key_approve_button(unsigned int button_mask, unsigned int button_mask_counter) {
     UNUSED(button_mask_counter);
 
     switch (button_mask) {

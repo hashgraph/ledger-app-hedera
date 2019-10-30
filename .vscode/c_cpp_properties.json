@@ -15,7 +15,8 @@
                 "APPVERSION=\"1.0.0\"",
                 "APPVERSION_M=1",
                 "APPVERSION_N=0",
-                "APPVERSION_P=0"
+                "APPVERSION_P=0",
+                "PB_BUFFER_ONLY=1"
             ],
             "macFrameworkPath": [],
             "compilerPath": "/usr/bin/clang",
