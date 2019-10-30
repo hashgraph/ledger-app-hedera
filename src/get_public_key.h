@@ -13,8 +13,11 @@
 #include "debug.h"
 #include "utils.h"
 
-static const uint8_t KEY_SIZE = 32;
+// Sizes in Characters, not Bytes
+static const uint8_t KEY_SIZE = 64;
 static const uint8_t DISPLAY_SIZE = 12;
+
+// Arbitrary IDs for Buttons
 static const uint8_t LEFT_ID = 0x01;
 static const uint8_t RIGHT_ID = 0x02;
 
