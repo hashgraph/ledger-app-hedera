@@ -24,7 +24,7 @@ def bolos_env(target):
 def run_docker(target, command):
     image_name = image_tag(target)
     run_command = \
-        "docker run --rm --privileged \
+        "docker run --rm --privileged -v /dev:/dev \
             -v {pwd}/:/workspace {img} {t} \"{cmd}\"\
          ".format(
             pwd=os.getcwd(),
