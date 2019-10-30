@@ -53,7 +53,7 @@ void send_pk() {
     public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
     
     // Flush
-    io_exchange_with_code(EXCEPTION_OK, KEY_SIZE);
+    io_exchange_with_code(EXCEPTION_OK, 32);
 }
 
 void compare_pk() {

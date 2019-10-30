@@ -43,7 +43,7 @@ static const bagl_element_t ui_get_public_key_compare[] = {
     //      Compare:         
     //      <partial>        
     //                       
-    UI_TEXT(0x00, 0, 12, 128, "Compare:"),
+    UI_TEXT(0x00, 0, 12, 128, "Public Key"),
     UI_TEXT(0x00, 0, 26, 128, ctx.partial_key)
 };
 
