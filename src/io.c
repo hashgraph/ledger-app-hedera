@@ -4,8 +4,8 @@
 
 // Everything below this point is Ledger magic. And the magic isn't well-
 // documented, so if you want to understand it, you'll need to read the
-// source, which you can find in the nanos-secure-sdk repo. Fortunately, you
-// don't need to understand any of this in order to write an app.
+// source, which you can find in the sdk repo for your device.
+// Fortunately, we are not meant to understand this.
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -18,9 +18,6 @@ unsigned char io_event(unsigned char channel) {
 
     // Ledger docs recommend checking the canary on each io_event
     debug_check_stack_canary();
-
-    // nothing done with the event, throw an error on the transport layer if
-    // needed
 
     // can't have more than one tag in the reply, not supported yet.
     switch (G_io_seproxyhal_spi_buffer[0]) {

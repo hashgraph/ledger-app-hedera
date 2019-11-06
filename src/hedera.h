@@ -3,12 +3,18 @@
 
 #include <stdint.h>
 
+#if defined(TARGET_NANOS)
+
 #define MAX_TX_SIZE 512
 
+#elif defined(TARGET_NANOX)
+
+#define MAX_TX_SIZE 1024
+
+#endif // TARGET
+
 // Forward declare to avoid including os.h in a header file
-
 struct cx_ecfp_256_public_key_s;
-
 struct cx_ecfp_256_private_key_s;
 
 extern void hedera_derive_keypair(

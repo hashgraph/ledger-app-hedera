@@ -1,9 +1,9 @@
 #ifndef LEDGER_HEDERA_GET_PUBLIC_KEY_H
 #define LEDGER_HEDERA_GET_PUBLIC_KEY_H 1
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-
 #include <printf.h>
 
 #include "errors.h"
@@ -13,7 +13,10 @@
 #include "debug.h"
 #include "utils.h"
 
+#if defined(TARGET_NANOS)
+
 // Sizes in Characters, not Bytes
+// Used for display only
 static const uint8_t KEY_SIZE = 64;
 static const uint8_t DISPLAY_SIZE = 12;
 
@@ -78,12 +81,26 @@ static unsigned int ui_get_public_key_approve_button(
     unsigned int button_mask_counter
 );
 
+void handle_get_public_key_nanos();
+
+#elif defined(TARGET_NANOX)
+
+static struct get_public_key_context_t {
+    uint32_t key_index;
+    cx_ecfp_public_key_t public;
+} ctx;
+
+void handle_get_public_key_nanox();
+
+#endif // TARGET
+
 void handle_get_public_key(
-    uint8_t p1,
-    uint8_t p2,
-    const uint8_t* const buffer,
-    uint16_t len,
-    /* out */ volatile unsigned int* flags,
-    /* out */ volatile const unsigned int* const tx
+        uint8_t p1,
+        uint8_t p2,
+        const uint8_t* const buffer,
+        uint16_t len,
+        /* out */ volatile unsigned int* flags,
+        /* out */ volatile const unsigned int* const tx
 );
-#endif
+
+#endif // LEDGER_HEDERA_GET_PUBLIC_KEY_H

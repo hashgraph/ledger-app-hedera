@@ -1,10 +1,11 @@
 #include "ui.h"
 #include "os.h"
 
-#if defined(TARGET_NANOS)
+/*
+ * Defines the main menu and idle actions for the app
+ */
 
-// This is a forward declaration since [menu_about] needs to know about
-// [menu_main] to go back to it.
+#if defined(TARGET_NANOS)
 static const ux_menu_entry_t menu_main[4];
 
 static const ux_menu_entry_t menu_about[3] = {
@@ -68,20 +69,13 @@ static const ux_menu_entry_t menu_main[4] = {
 
     UX_MENU_END
 };
+#elif defined(TARGET_NANOX)
 
-#endif // #if TARGET_
+#endif // TARGET
 
-// ui_idle displays the main menu
-// note that we are not _required_ to use the main menu as the idle screen
 void ui_idle(void) {
 #if defined(TARGET_NANOS)
     UX_MENU_DISPLAY(0, menu_main, NULL);
 #elif defined(TARGET_NANOX)
-    // reserve a display stack slot if none yet
-    if (G_ux.stack_count == 0) {
-        ux_stack_push();
-    }
-
-    ux_flow_init(0, ux_idle_flow, NULL);
 #endif // #if TARGET_
 }

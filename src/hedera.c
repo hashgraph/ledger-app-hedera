@@ -1,10 +1,6 @@
 #include <os.h>
-
 #include <printf.h>
-
 #include "hedera.h"
-#include "debug.h"
-
 
 void hedera_derive_keypair(
     uint32_t index,

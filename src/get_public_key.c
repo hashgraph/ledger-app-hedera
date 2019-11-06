@@ -1,5 +1,7 @@
 #include "get_public_key.h"
 
+#if defined(TARGET_NANOS)
+
 void shift_partial_key() {
     os_memmove(
         ctx.partial_key,
@@ -98,13 +100,28 @@ static unsigned int ui_get_public_key_approve_button(
     return 0;
 }
 
+void handle_get_public_key_nanos() {
+    snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
+
+    // Display Approval Screen
+    UX_DISPLAY(ui_get_public_key_approve, NULL);
+}
+
+#elif defined(TARGET_NANOX)
+
+void handle_get_public_key_nanox() {
+
+}
+
+#endif // TARGET
+
 void handle_get_public_key(
-    uint8_t p1,
-    uint8_t p2,
-    const uint8_t* const buffer,
-    uint16_t len,
-    /* out */ volatile unsigned int* flags,
-    /* out */ volatile const unsigned int* const tx
+        uint8_t p1,
+        uint8_t p2,
+        const uint8_t* const buffer,
+        uint16_t len,
+        /* out */ volatile unsigned int* flags,
+        /* out */ volatile const unsigned int* const tx
 ) {
     UNUSED(p1);
     UNUSED(p2);
@@ -113,9 +130,15 @@ void handle_get_public_key(
 
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
-    snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
 
-    // Display Approval Screen
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
+#if defined(TARGET_NANOS)
+
+    handle_get_public_key_nanos();
     *flags |= IO_ASYNCH_REPLY;
+
+#elif defined(TARGET_NANOX)
+
+    handle_get_public_key_nanox();
+
+#endif // TARGET
 }
