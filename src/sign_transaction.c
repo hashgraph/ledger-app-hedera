@@ -209,8 +209,6 @@ void handle_sign_transaction_nanox() {
         default:
             THROW(EXCEPTION_MALFORMED_APDU);
     }
-
-    *flags |= IO_ASYNCH_REPLY;
 }
 
 #endif
@@ -263,11 +261,12 @@ void handle_sign_transaction(
     // At first, don't actually sign. Redisplay after approval, then sign.
     ctx.do_sign = false;
     handle_sign_transaction_nanos();
-    *flags |= IO_ASYNCH_REPLY;
 
 #elif defined(TARGET_NANOX)
 
     handle_sign_transaction_nanox();
 
 #endif
+
+    *flags |= IO_ASYNCH_REPLY;
 }

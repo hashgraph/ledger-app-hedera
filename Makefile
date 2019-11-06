@@ -76,7 +76,7 @@ DEFINES   += APPVERSION=\"$(APPVERSION)\"
 
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-DEFINES   	  += IO_SEPROXYHAL_BUFFER_SIZE_B=300
+DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
 DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
 
@@ -108,17 +108,8 @@ endif
 #  Compiler  #
 ##############
 ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
 CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
 GCCPATH := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
 endif
 
 CC       := $(CLANGPATH)clang
@@ -152,12 +143,6 @@ ifeq ($(TARGET_NAME),TARGET_NANOX)
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
-
-#flash-debug:
-#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/debug.hex --reverse --nocrc
-
-#flash-normal:
-#	python -m ledgerblue.loadMCU --targetId 0x1000001 --fileName firmware/$(TARGET_NAME)/normal.hex --reverse --nocrc
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
