@@ -1,8 +1,8 @@
 #ifndef LEDGER_HEDERA_UI_H
 #define LEDGER_HEDERA_UI_H 1
 
-#include "globals.h"
 #include "glyphs.h"
+#include "globals.h"
 
 #if defined(TARGET_NANOS)
 
@@ -16,6 +16,7 @@ unsigned int ux_step_count;
 #define UI_ICON_LEFT(userid, glyph) {{BAGL_ICON,userid,3,12,7,7,0,0,0,0xFFFFFF,0,0,glyph},NULL,0,0,0,NULL,NULL,NULL}
 #define UI_ICON_RIGHT(userid, glyph) {{BAGL_ICON,userid,117,13,8,6,0,0,0,0xFFFFFF,0,0,glyph},NULL,0,0,0,NULL,NULL,NULL}
 #define UI_TEXT(userid, x, y, w, text) {{BAGL_LABELINE,userid,x,y,w,12,0,0,0,0xFFFFFF,0,BAGL_FONT_OPEN_SANS_REGULAR_11px|BAGL_FONT_ALIGNMENT_CENTER,0},(char *)(text),0,0,0,NULL,NULL,NULL}
+
 #elif defined(TARGET_NANOX)
 
 // Forwards for UX System

@@ -1,5 +1,4 @@
 #include "ui.h"
-#include "os.h"
 
 /*
  * Defines the main menu and idle actions for the app

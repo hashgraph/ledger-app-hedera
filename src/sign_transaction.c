@@ -2,6 +2,43 @@
 
 #if defined(TARGET_NANOS)
 
+// Sign Transaction Context for Nano S
+static struct sign_tx_context_t {
+    // ui common
+    uint32_t key_index;
+
+    // temp variables
+    uint8_t transfer_to_index;
+
+    // ui_transfer_tx_approve
+    char ui_tx_approve_l1[40];
+    char ui_tx_approve_l2[40];
+
+    // what step of the UI flow are we on
+    bool do_sign;
+
+    // Raw transaction from APDU
+    uint8_t raw_transaction[MAX_TX_SIZE];
+    uint16_t raw_transaction_length;
+
+    // Parsed transaction
+    HederaTransactionBody transaction;
+} ctx;
+
+// UI definition for Nano S
+static const bagl_element_t ui_tx_approve[] = {
+    UI_BACKGROUND(),
+    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
+
+    // X                  O
+    //   Line 1
+    //   Line 2
+
+    UI_TEXT(0x00, 0, 12, 128, ctx.ui_tx_approve_l1),
+    UI_TEXT(0x00, 0, 26, 128, ctx.ui_tx_approve_l2)
+};
+
 unsigned int ui_tx_approve_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
@@ -111,6 +148,23 @@ void handle_sign_transaction_nanos() {
 }
 
 #elif defined(TARGET_NANOX)
+
+static struct sign_tx_context_t {
+   // ui common
+    uint32_t key_index;
+
+    // temp variables
+    uint8_t transfer_to_index;
+
+    // Raw transaction from APDU
+    uint8_t raw_transaction[MAX_TX_SIZE];
+    uint16_t raw_transaction_length;
+
+    // Parsed transaction
+    HederaTransactionBody transaction;
+} ctx;
+
+// UI here
 
 void handle_sign_transaction_nanox() {
     // Which Tx is it?
