@@ -31,6 +31,8 @@ APPVERSION_P = 0
 APPVERSION = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = Hedera
 
+COIN = hedera
+
 DEFINES += $(DEFINES_LIB)
 
 ICONNAME = icons/nanos_app_hedera.gif
@@ -44,7 +46,11 @@ endif
 ################
 # Default rule #
 ################
+ifeq ($(TARGET_NAME), TARGET_NANOX)
+all: proto default
+else
 all: proto printf default
+endif
 
 ############
 # Platform #
@@ -59,8 +65,10 @@ DEFINES   += APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSIO
 DFEFINES  += PB_FIELD_32BIT=1
 
 # vendor/printf
+ifneq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL PRINTF_DISABLE_SUPPORT_PTRDIFF_T
 DEFINES   += PRINTF_NTOA_BUFFER_SIZE=9U PRINTF_FTOA_BUFFER_SIZE=0
+endif
 
 # U2F
 DEFINES   += HAVE_U2F HAVE_IO_U2F
@@ -76,6 +84,9 @@ DEFINES   += APPVERSION=\"$(APPVERSION)\"
 
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
+# Instad of vendor printf
+DEFINES 	  += HAVE_SPRINTF
+
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
 DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
