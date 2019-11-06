@@ -3,12 +3,8 @@
 
 #include <stdint.h>
 
-#define MAX_TX_SIZE 512
-
 // Forward declare to avoid including os.h in a header file
-
 struct cx_ecfp_256_public_key_s;
-
 struct cx_ecfp_256_private_key_s;
 
 extern void hedera_derive_keypair(

@@ -4,10 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// The APDU protocol uses a single-byte instruction code (INS) to specify
-// which command should be executed. We'll use this code to dispatch on a
-// table of function pointers.
-
+// CLA <INS> <-- Command Line Argument <Instruction>
 #define INS_GET_APP_CONFIGURATION 0x01
 #define INS_GET_PUBLIC_KEY 0x02
 #define INS_SIGN_TRANSACTION 0x04
