@@ -5,6 +5,10 @@
  */
 
 #if defined(TARGET_NANOS)
+ux_state_t ux;
+unsigned int ux_step;
+unsigned int ux_step_count;
+
 static const ux_menu_entry_t menu_main[4];
 
 static const ux_menu_entry_t menu_about[3] = {
@@ -69,7 +73,8 @@ static const ux_menu_entry_t menu_main[4] = {
     UX_MENU_END
 };
 #elif defined(TARGET_NANOX)
-
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
 #endif // TARGET
 
 void ui_idle(void) {

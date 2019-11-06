@@ -1,3 +1,16 @@
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <printf.h>
+
+#include "globals.h"
+#include "debug.h"
+#include "errors.h"
+#include "handlers.h"
+#include "hedera.h"
+#include "io.h"
+#include "utils.h"
+#include "ui.h"
 #include "get_public_key.h"
 
 #if defined(TARGET_NANOS)

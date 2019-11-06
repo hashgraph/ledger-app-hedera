@@ -6,11 +6,6 @@
 
 #if defined(TARGET_NANOS)
 
-// Forwards for UX System
-ux_state_t ux;
-unsigned int ux_step;
-unsigned int ux_step_count;
-
 // Common UI element definitions for Nano S
 #define UI_BACKGROUND() {{BAGL_RECTANGLE,0,0,0,128,32,0,0,BAGL_FILL,0,0xFFFFFF,0,0},NULL,0,0,0,NULL,NULL,NULL}
 #define UI_ICON_LEFT(userid, glyph) {{BAGL_ICON,userid,3,12,7,7,0,0,0,0xFFFFFF,0,0,glyph},NULL,0,0,0,NULL,NULL,NULL}
@@ -19,15 +14,20 @@ unsigned int ux_step_count;
 
 #elif defined(TARGET_NANOX)
 
-// Forwards for UX System
 #include "ux.h"
-ux_state_t G_ux;
-bolos_ux_params_t G_ux_params;
 
 // Common UI element definitions for Nano X
 
 #endif // TARGET
 
-extern void ui_idle();
+// Forwards for UX and UI IO functions
+extern unsigned int io_seproxyhal_touch_settings(const bagl_element_t *e);
+extern unsigned int io_seproxyhal_touch_exit(const bagl_element_t *e);
+extern unsigned int io_seproxyhal_touch_tx_ok(const bagl_element_t *e);
+extern unsigned int io_seproxyhal_touch_tx_cancel(const bagl_element_t *e);
+extern unsigned int io_seproxyhal_touch_address_ok(const bagl_element_t *e);
+extern unsigned int io_seproxyhal_touch_address_cancel(const bagl_element_t *e);
+extern void ui_idle(void);
+
 
 #endif // LEDGER_HEDERA_UI_H
