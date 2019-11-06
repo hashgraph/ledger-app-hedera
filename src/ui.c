@@ -73,13 +73,54 @@ static const ux_menu_entry_t menu_main[4] = {
     UX_MENU_END
 };
 #elif defined(TARGET_NANOX)
+
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
+
+UX_STEP_NOCB(
+    ux_idle_flow_1_step,
+    nn,
+    {
+        "Awaiting",
+        "Commands"
+    }
+);
+
+UX_STEP_NOCB(
+    ux_idle_flow_2_step,
+    bn,
+    {
+        "Version",
+        APPVERSION,
+    }
+);
+
+UX_STEP_VALID(
+    ux_idle_flow_3_step,
+    pb,
+    os_sched_exit(-1),
+    {
+        &C_icon_dashboard_x,
+        "Exit"
+    }
+);
+
+UX_DEF(
+    ux_idle_flow,
+    &ux_idle_flow_1_step,
+    &ux_idle_flow_2_step,
+    &ux_idle_flow_3_step
+);
+
 #endif // TARGET
 
 void ui_idle(void) {
 #if defined(TARGET_NANOS)
     UX_MENU_DISPLAY(0, menu_main, NULL);
 #elif defined(TARGET_NANOX)
+    if (G_ux.stack_count == 0) {
+        ux_stack_push();
+    }
+    ux_flow_init(0, ux_idle_flow, NULL);
 #endif // #if TARGET_
 }
