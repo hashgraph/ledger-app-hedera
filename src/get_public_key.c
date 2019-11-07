@@ -160,11 +160,10 @@ unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e) {
 
 UX_STEP_NOCB(
     ux_compare_pk_flow_1_step,
-    pnn,
+    bn,
     {
-        &C_icon_eye,
-        "Verify"
-        "Public Key"
+        "Export?",
+        ctx.ui_approve_l2
     }
 );
 
@@ -172,7 +171,7 @@ UX_STEP_NOCB(
     ux_compare_pk_flow_2_step,
     bnnn_paging,
     {
-        .title = "Public Key",
+        .title = ctx.ui_approve_l2,
         .text = (char*) ctx.full_key
     }
 );
@@ -246,6 +245,7 @@ void handle_get_public_key(
 
 #elif defined(TARGET_NANOX)
 
+    SPRINTF(ctx.ui_approve_l2, "Public Key #%u", ctx.key_index);
     handle_get_public_key_nanox();
 
 #endif // TARGET

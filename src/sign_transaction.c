@@ -171,7 +171,7 @@ unsigned int io_seproxyhal_sign_tx_approve(const bagl_element_t *e) {
         ctx.raw_transaction_length,
         G_io_apdu_buffer
     );
-    io_exchange_with_code(EXCEPTION_OK, 32);
+    io_exchange_with_code(EXCEPTION_OK, 64);
     ui_idle();
     return 0;
 }
