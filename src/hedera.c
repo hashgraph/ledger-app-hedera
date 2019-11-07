@@ -103,6 +103,13 @@ char* hedera_format_tinybar(uint64_t tinybar) {
     hbar = (tinybar / HBAR);
     hbar_f = (tinybar % HBAR * 10000 / HBAR);
 
+#if defined(TARGET_NANOX)
+   cnt = snprintf(buf, HBAR_BUF_SIZE, "%u", (unsigned int)hbar);
+
+   if (hbar_f != 0) {
+       cnt += snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4u", (unsigned int)hbar_f);
+   }
+#else
     cnt = snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
 
     if (hbar_f != 0) {
@@ -110,6 +117,6 @@ char* hedera_format_tinybar(uint64_t tinybar) {
     }
 
     buf[cnt] = 0;
-
+#endif
     return buf;
 }
