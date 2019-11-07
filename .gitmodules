@@ -4,6 +4,3 @@
 [submodule "vendor/nanos-secure-sdk"]
 	path = vendor/nanos-secure-sdk
         url = https://github.com/LedgerHQ/nanos-secure-sdk
-[submodule "vendor/printf"]
-	path = vendor/printf
-	url = https://github.com/mpaland/printf

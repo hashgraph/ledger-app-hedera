@@ -46,11 +46,11 @@ endif
 ################
 # Default rule #
 ################
-ifeq ($(TARGET_NAME), TARGET_NANOX)
+# ifeq ($(TARGET_NAME), TARGET_NANOX)
+# all: proto default
+# else
 all: proto default
-else
-all: proto printf default
-endif
+#endif
 
 ############
 # Platform #
@@ -65,10 +65,10 @@ DEFINES   += APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSIO
 DFEFINES  += PB_FIELD_32BIT=1
 
 # vendor/printf
-ifneq ($(TARGET_NAME),TARGET_NANOX)
+# ifneq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL PRINTF_DISABLE_SUPPORT_PTRDIFF_T
 DEFINES   += PRINTF_NTOA_BUFFER_SIZE=9U PRINTF_FTOA_BUFFER_SIZE=0
-endif
+# endif
 
 # U2F
 DEFINES   += HAVE_U2F HAVE_IO_U2F
@@ -105,7 +105,6 @@ endif
 # Enabling debug PRINTF
 DEBUG = 1
 ifneq ($(DEBUG),0)
-
         ifeq ($(TARGET_NAME),TARGET_NANOX)
                 DEFINES   += HAVE_PRINTF PRINTF=mcu_usb_printf
         else
@@ -194,7 +193,3 @@ proto: vendor/ledger-nanopb/generator/proto/nanopb_pb2.py
 		proto/*.proto
 
 	@ cp vendor/ledger-nanopb/*.c src/
-
-# TODO: Figure out a way to do this without copying .c files
-printf:
-	@ cp vendor/printf/*.c src/

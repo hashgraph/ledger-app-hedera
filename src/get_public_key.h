@@ -9,8 +9,6 @@ static const uint8_t DISPLAY_SIZE = 12;
 void get_pk();
 
 #if defined(TARGET_NANOS)
-#include <printf.h>
-
 // Arbitrary IDs for Buttons
 static const uint8_t LEFT_ID = 0x01;
 static const uint8_t RIGHT_ID = 0x02;
@@ -34,13 +32,10 @@ static unsigned int ui_get_public_key_approve_button(
     unsigned int button_mask_counter
 );
 
-unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e);
-unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e);
-void handle_get_public_key_nanos();
-
 #elif defined(TARGET_NANOX)
 
-void handle_get_public_key_nanox();
+unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e);
+unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e);
 
 #endif // TARGET
 

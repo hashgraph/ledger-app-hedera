@@ -6,7 +6,6 @@ debug/
 src/glyphs.c
 src/glyphs.h
 src/pb_*
-src/printf*
 
 # Editors
 .idea

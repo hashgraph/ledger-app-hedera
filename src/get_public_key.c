@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <printf.h>
 
 #include "globals.h"
 #include "debug.h"
@@ -12,11 +11,14 @@
 #include "utils.h"
 #include "ui.h"
 #include "get_public_key.h"
+#include "printf.h"
 
 static struct get_public_key_context_t {
     uint32_t key_index;
 
     // Lines on the UI Screen
+    // L1 Only used for title in Nano X compare
+    char ui_approve_l1[40];
     char ui_approve_l2[40];
 
     cx_ecfp_public_key_t public;
@@ -126,7 +128,6 @@ static unsigned int ui_get_public_key_approve_button(
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
-            get_pk();
             compare_pk();
             break;
 
@@ -135,13 +136,6 @@ static unsigned int ui_get_public_key_approve_button(
     }
 
     return 0;
-}
-
-void handle_get_public_key_nanos() {
-    snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
-
-    // Display Approval Screen
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
 }
 
 #elif defined(TARGET_NANOX)
@@ -162,7 +156,7 @@ UX_STEP_NOCB(
     ux_compare_pk_flow_1_step,
     bn,
     {
-        "Export?",
+        "Export Public",
         ctx.ui_approve_l2
     }
 );
@@ -171,7 +165,7 @@ UX_STEP_NOCB(
     ux_compare_pk_flow_2_step,
     bnnn_paging,
     {
-        .title = ctx.ui_approve_l2,
+        .title = ctx.ui_approve_l1,
         .text = (char*) ctx.full_key
     }
 );
@@ -204,11 +198,6 @@ UX_DEF(
     &ux_compare_pk_flow_4_step
 );
 
-void handle_get_public_key_nanox() {
-    get_pk();
-    ux_flow_init(0, ux_compare_pk_flow, NULL);
-}
-
 #endif // TARGET
 
 void get_pk() {
@@ -239,14 +228,22 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
+    // Title for Nano X compare screen
+    hedera_snprintf(ctx.ui_approve_l1, 40, "Public Key #%u", ctx.key_index);
+
+    // Complete "Export Public | Key #x?"
+    hedera_snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
+
+    // Populate context with PK
+    get_pk();
+
 #if defined(TARGET_NANOS)
 
-    handle_get_public_key_nanos();
+    UX_DISPLAY(ui_get_public_key_approve, NULL);
 
 #elif defined(TARGET_NANOX)
 
-    SPRINTF(ctx.ui_approve_l2, "Public Key #%u", ctx.key_index);
-    handle_get_public_key_nanox();
+    ux_flow_init(0, ux_compare_pk_flow, NULL);
 
 #endif // TARGET
 
