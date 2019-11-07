@@ -82,7 +82,7 @@ void hedera_sign(
         NULL,                            // context (UNUSED)
         0,                               // context length (0)
         result,                          // signature
-        64,                              // signature length
+        sizeof(result),                  // signature length
         NULL                             // info
     );
 

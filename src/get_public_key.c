@@ -164,7 +164,7 @@ UX_STEP_NOCB(
     {
         &C_icon_eye,
         "Verify"
-        "Address"
+        "Public Key"
     }
 );
 

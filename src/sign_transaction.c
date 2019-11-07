@@ -16,9 +16,6 @@
 #include "ui.h"
 #include "sign_transaction.h"
 
-#if defined(TARGET_NANOS)
-
-// Sign Transaction Context for Nano S
 static struct sign_tx_context_t {
     // ui common
     uint32_t key_index;
@@ -40,6 +37,8 @@ static struct sign_tx_context_t {
     // Parsed transaction
     HederaTransactionBody transaction;
 } ctx;
+
+#if defined(TARGET_NANOS)
 
 // UI definition for Nano S
 static const bagl_element_t ui_tx_approve[] = {
@@ -165,27 +164,116 @@ void handle_sign_transaction_nanos() {
 
 #elif defined(TARGET_NANOX)
 
-static struct sign_tx_context_t {
-   // ui common
-    uint32_t key_index;
+unsigned int io_seproxyhal_sign_tx_approve(const bagl_element_t *e) {
+    hedera_sign(
+        ctx.key_index,
+        ctx.raw_transaction,
+        ctx.raw_transaction_length,
+        G_io_apdu_buffer
+    );
+    io_exchange_with_code(EXCEPTION_OK, 32);
+    ui_idle();
+    return 0;
+}
 
-    // temp variables
-    uint8_t transfer_to_index;
+unsigned int io_seproxyhal_sign_tx_reject(const bagl_element_t *e) {
+     io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+     ui_idle();
+     return 0;
+}
 
-    // Raw transaction from APDU
-    uint8_t raw_transaction[MAX_TX_SIZE];
-    uint16_t raw_transaction_length;
+UX_STEP_NOCB(
+    ux_sign_tx_flow_1_step,
+    nn,
+    {
+        ctx.ui_tx_approve_l1,
+        ctx.ui_tx_approve_l2
+    }
+);
 
-    // Parsed transaction
-    HederaTransactionBody transaction;
-} ctx;
+UX_STEP_VALID(
+    ux_sign_tx_flow_2_step,
+    pb,
+    io_seproxyhal_sign_tx_approve(NULL),
+    {
+        &C_icon_validate_14,
+        "Approve"
+    }
+);
 
-// UI here
+UX_STEP_VALID(
+    ux_sign_tx_flow_3_step,
+    pb,
+    io_seproxyhal_sign_tx_reject(NULL),
+    {
+        &C_icon_crossmark,
+        "Reject"
+    }
+);
+
+UX_DEF(
+    ux_sign_tx_flow,
+    &ux_sign_tx_flow_1_step,
+    &ux_sign_tx_flow_2_step,
+    &ux_sign_tx_flow_3_step
+);
+
+unsigned int io_seproxyhal_confirm_tx_approve(const bagl_element_t *e) {
+    SPRINTF(ctx.ui_tx_approve_l1, "Sign Transaction");
+    SPRINTF(ctx.ui_tx_approve_l2, "with Key #%u?", ctx.key_index);
+    ux_flow_init(0, ux_sign_tx_flow, NULL);
+    return 0;
+}
+
+unsigned int io_seproxyhal_confirm_tx_reject(const bagl_element_t *e) {
+     io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+     ui_idle();
+     return 0;
+}
+
+UX_STEP_NOCB(
+    ux_confirm_tx_flow_1_step,
+    nn,
+    {
+        ctx.ui_tx_approve_l1,
+        ctx.ui_tx_approve_l2
+    }
+);
+
+UX_STEP_VALID(
+    ux_confirm_tx_flow_2_step,
+    pb,
+    io_seproxyhal_confirm_tx_approve(NULL),
+    {
+        &C_icon_validate_14,
+        "Accept"
+    }
+);
+
+UX_STEP_VALID(
+    ux_confirm_tx_flow_3_step,
+    pb,
+    io_seproxyhal_confirm_tx_reject(NULL),
+    {
+        &C_icon_crossmark,
+        "Reject"
+    }
+);
+
+UX_DEF(
+    ux_confirm_tx_flow,
+    &ux_confirm_tx_flow_1_step,
+    &ux_confirm_tx_flow_2_step,
+    &ux_confirm_tx_flow_3_step
+);
 
 void handle_sign_transaction_nanox() {
     // Which Tx is it?
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
+            SPRINTF(ctx.ui_tx_approve_l1, "Create Account");
+            SPRINTF(ctx.ui_tx_approve_l2, "with %s hbar?",
+                    hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
@@ -197,18 +285,48 @@ void handle_sign_transaction_nanox() {
             if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0) {
                 // Trying to send 0 is special-cased as an account ID confirmation
                 // The SENDER or the Id we are confirming is the first one
+                SPRINTF(
+                    ctx.ui_tx_approve_l1,
+                    "Confirm Account"
+                );
+
+                SPRINTF(
+                    ctx.ui_tx_approve_l2,
+                    "%u.%u.%u?",
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
+                );
             } else {
                 // Find sender based on positive tx amount
                 ctx.transfer_to_index = 1;
+
                 if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {
                     ctx.transfer_to_index = 0;
                 }
+
+                SPRINTF(
+                    ctx.ui_tx_approve_l1,
+                    "Transfer %s hbar",
+                    hedera_format_tinybar(
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
+                );
+
+                SPRINTF(
+                    ctx.ui_tx_approve_l2,
+                    "to %u.%u.%u?",
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
+                    (unsigned int)ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
+                );
             }
         } break;
 
         default:
             THROW(EXCEPTION_MALFORMED_APDU);
     }
+
+    ux_flow_init(0, ux_confirm_tx_flow, NULL);
 }
 
 #endif
