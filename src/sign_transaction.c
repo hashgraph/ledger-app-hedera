@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <printf.h>
 #include <pb.h>
 #include <pb_decode.h>
 
@@ -15,10 +14,8 @@
 #include "utils.h"
 #include "ui.h"
 #include "sign_transaction.h"
+#include "printf.h"
 
-#if defined(TARGET_NANOS)
-
-// Sign Transaction Context for Nano S
 static struct sign_tx_context_t {
     // ui common
     uint32_t key_index;
@@ -29,6 +26,8 @@ static struct sign_tx_context_t {
     // ui_transfer_tx_approve
     char ui_tx_approve_l1[40];
     char ui_tx_approve_l2[40];
+    char ui_tx_approve_l3[40];
+    char ui_tx_approve_l4[40];
 
     // what step of the UI flow are we on
     bool do_sign;
@@ -40,6 +39,8 @@ static struct sign_tx_context_t {
     // Parsed transaction
     HederaTransactionBody transaction;
 } ctx;
+
+#if defined(TARGET_NANOS)
 
 // UI definition for Nano S
 static const bagl_element_t ui_tx_approve[] = {
@@ -82,8 +83,8 @@ unsigned int ui_tx_approve_button(
                 ctx.do_sign = true;
                 
                 // Format For Signing a Transaction
-                snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction");
-                snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
+                hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction");
+                hedera_snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
 
                 UX_REDISPLAY();
             }
@@ -94,14 +95,91 @@ unsigned int ui_tx_approve_button(
     return 0;
 }
 
-void handle_sign_transaction_nanos() {
+#elif defined(TARGET_NANOX)
+
+unsigned int io_seproxyhal_confirm_tx_approve(const bagl_element_t *e) {
+    hedera_sign(
+        ctx.key_index,
+        ctx.raw_transaction,
+        ctx.raw_transaction_length,
+        G_io_apdu_buffer
+    );
+    io_exchange_with_code(EXCEPTION_OK, 64);
+    ui_idle();
+    return 0;
+}
+
+unsigned int io_seproxyhal_confirm_tx_reject(const bagl_element_t *e) {
+     io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+     ui_idle();
+     return 0;
+}
+
+UX_STEP_NOCB(
+    ux_confirm_tx_flow_1_step,
+    bnn,
+    {
+        "Transaction Details",
+        ctx.ui_tx_approve_l1,
+        ctx.ui_tx_approve_l2
+    }
+);
+
+UX_STEP_NOCB(
+    ux_confirm_tx_flow_2_step,
+    bnn,
+    {
+        "Confirm Transaction",
+        ctx.ui_tx_approve_l3,
+        ctx.ui_tx_approve_l4
+    }
+);
+
+
+UX_STEP_VALID(
+    ux_confirm_tx_flow_3_step,
+    pb,
+    io_seproxyhal_confirm_tx_approve(NULL),
+    {
+        &C_icon_validate_14,
+        "Accept"
+    }
+);
+
+UX_STEP_VALID(
+    ux_confirm_tx_flow_4_step,
+    pb,
+    io_seproxyhal_confirm_tx_reject(NULL),
+    {
+        &C_icon_crossmark,
+        "Reject"
+    }
+);
+
+UX_DEF(
+    ux_confirm_tx_flow,
+    &ux_confirm_tx_flow_1_step,
+    &ux_confirm_tx_flow_2_step,
+    &ux_confirm_tx_flow_3_step,
+    &ux_confirm_tx_flow_4_step
+);
+
+#endif
+
+void handle_transaction_body() {
+#if defined(TARGET_NANOS)
+    ctx.do_sign = false;
+#elif defined(TARGET_NANOX)
+    hedera_snprintf(ctx.ui_tx_approve_l3, 40, "Sign Transaction");
+    hedera_snprintf(ctx.ui_tx_approve_l4, 40, "with Key #%u?", ctx.key_index);
+#endif
+
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
-            snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
-            snprintf(
-                ctx.ui_tx_approve_l2, 40, "with %s hbar?",
-                hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
-
+            hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
+            hedera_snprintf(
+                    ctx.ui_tx_approve_l2, 40, "with %s hbar?",
+                    hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
             break;
 
         case HederaTransactionBody_cryptoTransfer_tag: {
@@ -115,19 +193,19 @@ void handle_sign_transaction_nanos() {
                 // Trying to send 0 is special-cased as an account ID confirmation
                 // The SENDER or the Id we are confirming is the first one
 
-                snprintf(
-                    ctx.ui_tx_approve_l1,
-                    40,
-                    "Confirm Account"
+                hedera_snprintf(
+                        ctx.ui_tx_approve_l1,
+                        40,
+                        "Confirm Account"
                 );
 
-                snprintf(
-                    ctx.ui_tx_approve_l2,
-                    40,
-                    "%llu.%llu.%llu?",
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
+                hedera_snprintf(
+                        ctx.ui_tx_approve_l2,
+                        40,
+                        "%llu.%llu.%llu?",
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
                 );
             } else {
                 // Find sender based on positive tx amount
@@ -136,20 +214,21 @@ void handle_sign_transaction_nanos() {
                     ctx.transfer_to_index = 0;
                 }
 
-                snprintf(
-                    ctx.ui_tx_approve_l1,
-                    40,
-                    "Transfer %s hbar",
-                    hedera_format_tinybar(
-                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
+                hedera_snprintf(
+                        ctx.ui_tx_approve_l1,
+                        40,
+                        "Transfer %s hbar",
+                        hedera_format_tinybar(
+                                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
                 );
 
-                snprintf(
-                    ctx.ui_tx_approve_l2, 40,
-                    "to %llu.%llu.%llu?",
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
+                hedera_snprintf(
+                        ctx.ui_tx_approve_l2,
+                        40,
+                        "to %llu.%llu.%llu?",
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
                 );
             }
         } break;
@@ -160,60 +239,12 @@ void handle_sign_transaction_nanos() {
             THROW(EXCEPTION_MALFORMED_APDU);
     }
 
+#if defined(TARGET_NANOS)
     UX_DISPLAY(ui_tx_approve, NULL);
-}
-
 #elif defined(TARGET_NANOX)
-
-static struct sign_tx_context_t {
-   // ui common
-    uint32_t key_index;
-
-    // temp variables
-    uint8_t transfer_to_index;
-
-    // Raw transaction from APDU
-    uint8_t raw_transaction[MAX_TX_SIZE];
-    uint16_t raw_transaction_length;
-
-    // Parsed transaction
-    HederaTransactionBody transaction;
-} ctx;
-
-// UI here
-
-void handle_sign_transaction_nanox() {
-    // Which Tx is it?
-    switch (ctx.transaction.which_data) {
-        case HederaTransactionBody_cryptoCreateAccount_tag:
-            break;
-
-        case HederaTransactionBody_cryptoTransfer_tag: {
-            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
-                // Unsupported
-                THROW(EXCEPTION_MALFORMED_APDU);
-            }
-
-            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0) {
-                // Trying to send 0 is special-cased as an account ID confirmation
-                // The SENDER or the Id we are confirming is the first one
-            } else {
-                // Find sender based on positive tx amount
-                ctx.transfer_to_index = 1;
-                if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {
-                    ctx.transfer_to_index = 0;
-                }
-            }
-        } break;
-
-        default:
-            THROW(EXCEPTION_MALFORMED_APDU);
-    }
-
-    *flags |= IO_ASYNCH_REPLY;
-}
-
+    ux_flow_init(0, ux_confirm_tx_flow, NULL);
 #endif
+}
 
 // Handle parsing APDU and displaying UI element
 void handle_sign_transaction(
@@ -258,16 +289,7 @@ void handle_sign_transaction(
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
-#if defined(TARGET_NANOS)
+    handle_transaction_body();
 
-    // At first, don't actually sign. Redisplay after approval, then sign.
-    ctx.do_sign = false;
-    handle_sign_transaction_nanos();
     *flags |= IO_ASYNCH_REPLY;
-
-#elif defined(TARGET_NANOX)
-
-    handle_sign_transaction_nanox();
-
-#endif
 }

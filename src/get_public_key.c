@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <printf.h>
 
 #include "globals.h"
 #include "debug.h"
@@ -12,13 +11,14 @@
 #include "utils.h"
 #include "ui.h"
 #include "get_public_key.h"
-
-#if defined(TARGET_NANOS)
+#include "printf.h"
 
 static struct get_public_key_context_t {
     uint32_t key_index;
 
     // Lines on the UI Screen
+    // L1 Only used for title in Nano X compare
+    char ui_approve_l1[40];
     char ui_approve_l2[40];
 
     cx_ecfp_public_key_t public;
@@ -28,6 +28,8 @@ static struct get_public_key_context_t {
     uint8_t full_key[KEY_SIZE + 1];
     uint8_t partial_key[DISPLAY_SIZE + 1];
 } ctx;
+
+#if defined(TARGET_NANOS)
 
 static const bagl_element_t ui_get_public_key_compare[] = {
     UI_BACKGROUND(),
@@ -80,6 +82,7 @@ static unsigned int ui_get_public_key_compare_button(
             UX_REDISPLAY();
             break;
         case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT: // Continue
+            io_exchange_with_code(EXCEPTION_OK, 32);
             ui_idle();
             break;
     }
@@ -98,22 +101,7 @@ static const bagl_element_t* ui_prepro_get_public_key_compare(
     return element;
 }
 
-void send_pk() {
-    // Derive Key
-    hedera_derive_keypair(ctx.key_index, NULL, &ctx.public);
-    
-    // Put Key bytes in APDU buffer
-    public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
-    
-    // Flush
-    io_exchange_with_code(EXCEPTION_OK, 32);
-}
-
 void compare_pk() {
-    // init full key str from apdu bytes
-    bin2hex(ctx.full_key, G_io_apdu_buffer, KEY_SIZE);
-    ctx.full_key[KEY_SIZE] = '\0';
-
     // init partial key str from full str
     os_memmove(ctx.partial_key, ctx.full_key, DISPLAY_SIZE);
     ctx.partial_key[DISPLAY_SIZE] = '\0';
@@ -140,7 +128,6 @@ static unsigned int ui_get_public_key_approve_button(
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
-            send_pk();
             compare_pk();
             break;
 
@@ -151,25 +138,79 @@ static unsigned int ui_get_public_key_approve_button(
     return 0;
 }
 
-void handle_get_public_key_nanos() {
-    snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
-
-    // Display Approval Screen
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
-}
-
 #elif defined(TARGET_NANOX)
 
-static struct get_public_key_context_t {
-    uint32_t key_index;
-    cx_ecfp_public_key_t public;
-} ctx;
-
-void handle_get_public_key_nanox() {
-
+unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e) {
+    io_exchange_with_code(EXCEPTION_OK, 32);
+    ui_idle();
+    return 0;
 }
 
+unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e) {
+     io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+     ui_idle();
+     return 0;
+}
+
+UX_STEP_NOCB(
+    ux_compare_pk_flow_1_step,
+    bn,
+    {
+        "Export Public",
+        ctx.ui_approve_l2
+    }
+);
+
+UX_STEP_NOCB(
+    ux_compare_pk_flow_2_step,
+    bnnn_paging,
+    {
+        .title = ctx.ui_approve_l1,
+        .text = (char*) ctx.full_key
+    }
+);
+
+UX_STEP_VALID(
+    ux_compare_pk_flow_3_step,
+    pb,
+    io_seproxyhal_touch_pk_ok(NULL),
+    {
+       &C_icon_validate_14,
+       "Approve"
+    }
+);
+
+UX_STEP_VALID(
+    ux_compare_pk_flow_4_step,
+    pb,
+    io_seproxyhal_touch_pk_cancel(NULL),
+    {
+        &C_icon_crossmark,
+        "Reject"
+    }
+);
+
+UX_DEF(
+    ux_compare_pk_flow,
+    &ux_compare_pk_flow_1_step,
+    &ux_compare_pk_flow_2_step,
+    &ux_compare_pk_flow_3_step,
+    &ux_compare_pk_flow_4_step
+);
+
 #endif // TARGET
+
+void get_pk() {
+    // Derive Key
+    hedera_derive_keypair(ctx.key_index, NULL, &ctx.public);
+
+    // Put Key bytes in APDU buffer
+    public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
+
+    // Populate Key Hex String
+    bin2hex(ctx.full_key, G_io_apdu_buffer, KEY_SIZE);
+    ctx.full_key[KEY_SIZE] = '\0';
+}
 
 void handle_get_public_key(
         uint8_t p1,
@@ -187,14 +228,24 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
+    // Title for Nano X compare screen
+    hedera_snprintf(ctx.ui_approve_l1, 40, "Public Key #%u", ctx.key_index);
+
+    // Complete "Export Public | Key #x?"
+    hedera_snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
+
+    // Populate context with PK
+    get_pk();
+
 #if defined(TARGET_NANOS)
 
-    handle_get_public_key_nanos();
-    *flags |= IO_ASYNCH_REPLY;
+    UX_DISPLAY(ui_get_public_key_approve, NULL);
 
 #elif defined(TARGET_NANOX)
 
-    handle_get_public_key_nanox();
+    ux_flow_init(0, ux_compare_pk_flow, NULL);
 
 #endif // TARGET
+
+    *flags |= IO_ASYNCH_REPLY;
 }

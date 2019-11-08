@@ -42,7 +42,7 @@ ifeq ($(filter clean,$(MAKECMDGOALS)),)
 endif
 
 clean:
-	rm -fr obj bin debug dep $(GLYPH_DESTC) $(GLYPH_DESTH)
+	rm -fr obj bin debug dep $(GLYPH_DESTC) $(GLYPH_DESTH) src/printf.c
 
 prepare:
 	$(call log, echo Prepare directories)

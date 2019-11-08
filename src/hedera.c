@@ -1,5 +1,5 @@
 #include <os.h>
-#include <printf.h>
+#include "printf.h"
 #include "hedera.h"
 
 void hedera_derive_keypair(
@@ -103,13 +103,12 @@ char* hedera_format_tinybar(uint64_t tinybar) {
     hbar = (tinybar / HBAR);
     hbar_f = (tinybar % HBAR * 10000 / HBAR);
 
-    cnt = snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
+    cnt = hedera_snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
 
     if (hbar_f != 0) {
-        cnt += snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4llu", hbar_f);
+        cnt += hedera_snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4llu", hbar_f);
     }
 
     buf[cnt] = 0;
-
     return buf;
 }

@@ -9,20 +9,17 @@ ARG GROUP_ID
 
 ARG CLANG_VERSION=4.0.0
 
-# Cross compilation headers are required
 RUN apt-get update && \
     apt-get -y install gcc-multilib g++-multilib \
                        wget xz-utils \
-                       python-dev python python-pip \
-                       python3-dev python3 python3-pip \
+                       python3-dev python3 \
+                       python3-pip python3-protobuf \
                        libudev-dev \
                        libusb-1.0-0-dev \
                        libtinfo5 \
                        clang-tidy \
                        clang-format \
-                       protobuf-compiler \
-                       python-protobuf \
-                       python3-protobuf
+                       protobuf-compiler
 
 RUN mkdir -p /opt/ledger/env
 
@@ -37,8 +34,11 @@ RUN wget http://releases.llvm.org/${CLANG_VERSION}/clang+llvm-${CLANG_VERSION}-x
     rm clang+llvm.tar.xz && \
     mv clang+llvm* /opt/ledger/env/clang-arm-fropi
 
-RUN pip install ledgerblue
-RUN pip install Pillow
+RUN pip3 install protobuf
+RUN pip3 install ledgerblue
+RUN pip3 install Pillow
+
+RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
 
 COPY x.py /opt/ledger/x.py
 

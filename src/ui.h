@@ -6,6 +6,8 @@
 
 #if defined(TARGET_NANOS)
 
+#include <printf.h>
+
 // Common UI element definitions for Nano S
 #define UI_BACKGROUND() {{BAGL_RECTANGLE,0,0,0,128,32,0,0,BAGL_FILL,0,0xFFFFFF,0,0},NULL,0,0,0,NULL,NULL,NULL}
 #define UI_ICON_LEFT(userid, glyph) {{BAGL_ICON,userid,3,12,7,7,0,0,0,0xFFFFFF,0,0,glyph},NULL,0,0,0,NULL,NULL,NULL}
@@ -15,19 +17,10 @@
 #elif defined(TARGET_NANOX)
 
 #include "ux.h"
-
 // Common UI element definitions for Nano X
 
 #endif // TARGET
 
-// Forwards for UX and UI IO functions
-extern unsigned int io_seproxyhal_touch_settings(const bagl_element_t *e);
-extern unsigned int io_seproxyhal_touch_exit(const bagl_element_t *e);
-extern unsigned int io_seproxyhal_touch_tx_ok(const bagl_element_t *e);
-extern unsigned int io_seproxyhal_touch_tx_cancel(const bagl_element_t *e);
-extern unsigned int io_seproxyhal_touch_address_ok(const bagl_element_t *e);
-extern unsigned int io_seproxyhal_touch_address_cancel(const bagl_element_t *e);
 extern void ui_idle(void);
-
 
 #endif // LEDGER_HEDERA_UI_H
