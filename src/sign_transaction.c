@@ -56,6 +56,11 @@ static const bagl_element_t ui_tx_approve[] = {
     UI_TEXT(0x00, 0, 26, 128, ctx.ui_tx_approve_l2)
 };
 
+// Each UI element has a macro defined function that is its
+// button handler, which must be named after the element with _button
+// appended. This function is called on every single iteration of 
+// the app loop while the async reply flag is set. The events consume
+// that flag and allow the app to continue. 
 unsigned int ui_tx_approve_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
@@ -69,6 +74,7 @@ unsigned int ui_tx_approve_button(
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
             if (ctx.do_sign) {
+                // Step 2
                 hedera_sign(
                     ctx.key_index, 
                     ctx.raw_transaction, 
@@ -79,6 +85,7 @@ unsigned int ui_tx_approve_button(
                 io_exchange_with_code(EXCEPTION_OK, 64);
                 ui_idle();
             } else {
+                // Step 1
                 // Signify "do sign" and change UI text
                 ctx.do_sign = true;
                 
@@ -168,13 +175,16 @@ UX_DEF(
 
 void handle_transaction_body() {
 #if defined(TARGET_NANOS)
+    // init at sign step 1
     ctx.do_sign = false;
 #elif defined(TARGET_NANOX)
+    // Initialize sign transaction screen for Nano X
     hedera_snprintf(ctx.ui_tx_approve_l3, 40, "Sign Transaction");
     hedera_snprintf(ctx.ui_tx_approve_l4, 40, "with Key #%u?", ctx.key_index);
 #endif
-
+    // Handle parsed protobuf message of transaction body
     switch (ctx.transaction.which_data) {
+        // It's a "Create Account" transaction
         case HederaTransactionBody_cryptoCreateAccount_tag:
             hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Create Account");
             hedera_snprintf(
@@ -182,13 +192,14 @@ void handle_transaction_body() {
                     hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance));
             break;
 
+        // It's a "Transfer" transaction
         case HederaTransactionBody_cryptoTransfer_tag: {
             if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
                 // Unsupported
-                // TODO: Better exception num
                 THROW(EXCEPTION_MALFORMED_APDU);
             }
 
+            // It's actually a "Verify Account" transaction (login)
             if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0) {
                 // Trying to send 0 is special-cased as an account ID confirmation
                 // The SENDER or the Id we are confirming is the first one
@@ -208,6 +219,7 @@ void handle_transaction_body() {
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
                 );
             } else {
+                // It's a transfer transaction between two parties
                 // Find sender based on positive tx amount
                 ctx.transfer_to_index = 1;
                 if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {

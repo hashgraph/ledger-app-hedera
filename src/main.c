@@ -25,6 +25,9 @@
 // will be caught, converted to an error code, appended to the response APDU,
 // and sent in the next io_exchange call.
 
+// Things are marked volatile throughout the app to prevent unintended compiler
+// reording of instructions (since the try-catch system is a macro)
+
 void app_main() {
     volatile unsigned int rx = 0;
     volatile unsigned int tx = 0;
@@ -50,29 +53,42 @@ void app_main() {
                     THROW(EXCEPTION_MALFORMED_APDU);
                 }
 
+                // APDU handler functions defined in handlers
                 switch (G_io_apdu_buffer[OFFSET_INS]) {
                     case INS_GET_APP_CONFIGURATION:
+                        // handlers -> get_app_configuration
                         handle_get_app_configuration(
-                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, &tx);
-
+                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, 
+                            G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, 
+                            &tx
+                        );
                         break;
 
                     case INS_GET_PUBLIC_KEY:
+                        // handlers -> get_public_key
                         handle_get_public_key(
-                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, &tx);
-
+                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, 
+                            G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, 
+                            &tx
+                        );
                         break;
 
                     case INS_SIGN_TRANSACTION:
+                        // handlers -> sign_transaction
                         handle_sign_transaction(
-                            G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, &tx);
-
+                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P2],
+                            G_io_apdu_buffer + OFFSET_CDATA, 
+                            G_io_apdu_buffer[OFFSET_LC], 
+                            &flags, 
+                            &tx
+                        );
                         break;
 
                     default: 
@@ -114,26 +130,29 @@ void app_main() {
 }
 
 void app_exit(void) {
+    // All os calls must be wrapped in a try catch context
     BEGIN_TRY_L(exit) {
         TRY_L(exit) {
             os_sched_exit(-1);
         }
         FINALLY_L(exit) {
-            // do nothing
+            // explicitly do nothing
         }
     }
     END_TRY_L(exit);
 }
 
 __attribute__((section(".boot"))) int main() {
-    // exit critical section
+    // exit critical section (ledger magic)
     __asm volatile("cpsie i");
 
+    // go with the overflow
     debug_init_stack_canary();
 
     os_boot();
 
     for (;;) {
+        // Initialize the UX system
         UX_INIT();
 
         BEGIN_TRY {
@@ -142,19 +161,20 @@ __attribute__((section(".boot"))) int main() {
                 // the Ledger SDK
                 io_seproxyhal_init();
 
+                // Power Cycle (I think?)
                 USB_power(0);
                 USB_power(1);
 
                 // Shows the main menu
                 ui_idle();
 
-                // The Ledger NanoX is bluetooth enabled and can communicate 
-                // using BLE instead of over USB
+                // Nano X (but not Blue, lol) has Bluetooth
 #ifdef HAVE_BLE
                 BLE_power(0, NULL);
                 BLE_power(1, "Nano X");
 #endif // HAVE_BLE
 
+                // Actual Main Loop
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {
