@@ -4,3 +4,6 @@
 [submodule "vendor/nanos-secure-sdk"]
 	path = vendor/nanos-secure-sdk
         url = https://github.com/LedgerHQ/nanos-secure-sdk
+[submodule "vendor/speculos"]
+	path = vendor/speculos
+	url = git@github.com:LedgerHQ/speculos.git

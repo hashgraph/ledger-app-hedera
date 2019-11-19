@@ -88,7 +88,7 @@ def main():
         type=str,
         nargs=1,
         default="make",
-        help="Command to Run (quoted)"
+        help="Command to Run with Makefile (quoted)"
     )
 
     args = parser.parse_args()
