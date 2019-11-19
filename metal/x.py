@@ -6,7 +6,7 @@ import subprocess
 
 
 def image_tag(target):
-    return "ledger_dev_{}:latest".format(target)
+    return "ledger_dev_{}_metal:latest".format(target)
 
 
 def bolos_env(target):
