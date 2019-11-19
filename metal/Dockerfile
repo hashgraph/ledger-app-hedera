@@ -1,6 +1,6 @@
 FROM ubuntu:19.10
 
-LABEL description="Ledger Development Environment"
+LABEL description="Ledger Development Environment (Metal)"
 LABEL author="LaunchBadge"
 LABEL version="1.0"
 
