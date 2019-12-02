@@ -6,6 +6,18 @@ Don't forget to clone me with submodules!
 
 `git clone --recurse-submodules git@github.com:hashgraph/ledger-app-hedera.git`
 
+##### General Requirements
+
+- Clang 4.0.0+
+
+- gcc with multilib support
+
+- python3, python3-protobuf
+
+- libudev, libusb or your platform equivalent
+
+- protobuf-compiler (protoc)
+
 ##### Building
 
 - `make proto` makes the protobufs for Hedera
