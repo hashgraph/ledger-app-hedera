@@ -130,7 +130,7 @@ CFLAGS   += -Og -Iproto
 CFLAGS   += -Ivendor/ledger-nanopb/
 
 # printf
-CFLAGS   += -Ivendor/printf/
+CFLAGS   += -Ivendor/printf/ -I/usr/include
 
 # enable color from inside a script
 CFLAGS   += -fcolor-diagnostics
@@ -170,7 +170,7 @@ include $(BOLOS_SDK)/Makefile.rules
 dep/%.d: %.c Makefile
 
 listvariants:
-	@echo VARIANTS COIN nanopb
+	@echo VARIANTS COIN hedera
 
 check:
 	@ clang-tidy \
