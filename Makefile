@@ -84,7 +84,7 @@ DEFINES   += APPVERSION=\"$(APPVERSION)\"
 
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-# Instad of vendor printf
+# Instead of vendor printf
 DEFINES 	  += HAVE_SPRINTF
 
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
