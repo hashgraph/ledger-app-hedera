@@ -4,6 +4,7 @@
 #include <pb.h>
 #include <pb_decode.h>
 
+#include "printf.h"
 #include "globals.h"
 #include "debug.h"
 #include "errors.h"
@@ -14,7 +15,6 @@
 #include "utils.h"
 #include "ui.h"
 #include "sign_transaction.h"
-#include "printf.h"
 
 static struct sign_tx_context_t {
     // ui common
@@ -31,6 +31,9 @@ static struct sign_tx_context_t {
 
     // what step of the UI flow are we on
     bool do_sign;
+
+    // verify account transaction
+    bool do_verify;
 
     // Raw transaction from APDU
     uint8_t raw_transaction[MAX_TX_SIZE];
@@ -88,9 +91,16 @@ unsigned int ui_tx_approve_button(
                 // Step 1
                 // Signify "do sign" and change UI text
                 ctx.do_sign = true;
-                
-                // Format For Signing a Transaction
-                hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction");
+
+                // if this is a verify account transaction (1 Sender, 0 Value)
+                // then format for account verification
+                if (ctx.do_verify) {
+                    hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Verify Account ID");
+                } else {
+                    // Format for Signing a Transaction
+                    hedera_snprintf(ctx.ui_tx_approve_l1, 40, "Sign Transaction");
+                }
+
                 hedera_snprintf(ctx.ui_tx_approve_l2, 40, "with Key #%u?", ctx.key_index);
 
                 UX_REDISPLAY();
@@ -175,10 +185,11 @@ UX_DEF(
 
 void handle_transaction_body() {
 #if defined(TARGET_NANOS)
-    // init at sign step 1
+    // init at sign step 1, not verifying
     ctx.do_sign = false;
+    ctx.do_verify = false;
 #elif defined(TARGET_NANOX)
-    // Initialize sign transaction screen for Nano X
+    // init key line for nano x
     hedera_snprintf(ctx.ui_tx_approve_l3, 40, "Sign Transaction");
     hedera_snprintf(ctx.ui_tx_approve_l4, 40, "with Key #%u?", ctx.key_index);
 #endif
@@ -194,29 +205,35 @@ void handle_transaction_body() {
 
         // It's a "Transfer" transaction
         case HederaTransactionBody_cryptoTransfer_tag: {
-            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 2) {
-                // Unsupported
+            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count > 2) {
+                // Unsupported (number of accounts > 2)
                 THROW(EXCEPTION_MALFORMED_APDU);
             }
 
             // It's actually a "Verify Account" transaction (login)
-            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0) {
-                // Trying to send 0 is special-cased as an account ID confirmation
-                // The SENDER or the Id we are confirming is the first one
+            if ( // Only 1 Account (Sender) and Value == 0
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 && 
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1) {
+
+                #if defined(TARGET_NANOS)
+                    ctx.do_verify = true;
+                #elif defined(TARGET_NANOX)
+                    hedera_snprintf(ctx.ui_tx_approve_l3, 40, "Verify Account ID");
+                #endif  
 
                 hedera_snprintf(
-                        ctx.ui_tx_approve_l1,
-                        40,
-                        "Confirm Account"
+                    ctx.ui_tx_approve_l1,
+                    40,
+                    "Confirm Account"
                 );
 
                 hedera_snprintf(
-                        ctx.ui_tx_approve_l2,
-                        40,
-                        "%llu.%llu.%llu?",
-                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
-                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
-                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
+                    ctx.ui_tx_approve_l2,
+                    40,
+                    "%llu.%llu.%llu?",
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
                 );
             } else {
                 // It's a transfer transaction between two parties
