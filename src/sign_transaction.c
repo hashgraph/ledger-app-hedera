@@ -211,9 +211,10 @@ void handle_transaction_body() {
             }
 
             // It's actually a "Verify Account" transaction (login)
-            if ( // Only 1 Account (Sender) and Value == 0
+            if ( // Only 1 Account (Sender), Fee 1 Tinybar, and Value 0 Tinybar
                 ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 && 
-                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1) {
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
+                ctx.transaction.transactionFee == 1) {
 
                 #if defined(TARGET_NANOS)
                     ctx.do_verify = true;
