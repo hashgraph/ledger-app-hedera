@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "printf.h"
 #include "globals.h"
 #include "debug.h"
 #include "errors.h"
@@ -11,7 +12,6 @@
 #include "utils.h"
 #include "ui.h"
 #include "get_public_key.h"
-#include "printf.h"
 
 static struct get_public_key_context_t {
     uint32_t key_index;

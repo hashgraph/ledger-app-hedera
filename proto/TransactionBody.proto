@@ -6,6 +6,7 @@ import "CryptoCreateTransactionBody.proto";
 import "CryptoTransferTransactionBody.proto";
 
 message HederaTransactionBody {
+    uint64 transactionFee = 3;
     oneof data {
         HederaCryptoCreateTransactionBody cryptoCreateAccount = 11;
         HederaCryptoTransferTransactionBody cryptoTransfer = 14;
