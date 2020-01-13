@@ -6,7 +6,8 @@
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/proto",
                 "${workspaceFolder}/vendor/ledger-nanopb",
-                "${workspaceFolder}/vendor/nanos-secure-sdk/include"
+                "${workspaceFolder}/vendor/nanos-secure-sdk/include",
+                "${workspaceFolder}/vendor/nanox-secure-sdk/include"
             ],
             "defines": [
                 "OS_IO_SEPROXYHAL",
