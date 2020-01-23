@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "globals.h"
 #include "printf.h"
 #include "globals.h"
 #include "debug.h"
@@ -17,8 +18,6 @@ static struct get_public_key_context_t {
     uint32_t key_index;
 
     // Lines on the UI Screen
-    // L1 Only used for title in Nano X compare
-    char ui_approve_l1[40];
     char ui_approve_l2[40];
 
     cx_ecfp_public_key_t public;
@@ -33,26 +32,26 @@ static struct get_public_key_context_t {
 
 static const bagl_element_t ui_get_public_key_compare[] = {
     UI_BACKGROUND(),
-    UI_ICON_LEFT(LEFT_ID, BAGL_GLYPH_ICON_LEFT),
-    UI_ICON_RIGHT(RIGHT_ID, BAGL_GLYPH_ICON_RIGHT),
+    UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_LEFT),
+    UI_ICON_RIGHT(RIGHT_ICON_ID, BAGL_GLYPH_ICON_RIGHT),
     // <=                  =>
-    //      Compare:
+    //      Public Key
     //      <partial>
     //
-    UI_TEXT(0x00, 0, 12, 128, "Public Key"),
-    UI_TEXT(0x00, 0, 26, 128, ctx.partial_key)
+    UI_TEXT(LINE_1_ID, 0, 12, 128, "Public Key"),
+    UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.partial_key)
 };
 
 static const bagl_element_t ui_get_public_key_approve[] = {
     UI_BACKGROUND(),
-    UI_ICON_LEFT(0x00, BAGL_GLYPH_ICON_CROSS),
-    UI_ICON_RIGHT(0x00, BAGL_GLYPH_ICON_CHECK),
+    UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(RIGHT_ICON_ID, BAGL_GLYPH_ICON_CHECK),
     //
     //    Export Public
     //       Key #123?
     //
-    UI_TEXT(0x00, 0, 12, 128, "Export Public"),
-    UI_TEXT(0x00, 0, 26, 128, ctx.ui_approve_l2),
+    UI_TEXT(LINE_1_ID, 0, 12, 128, "Export Public"),
+    UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.ui_approve_l2),
 };
 
 void shift_partial_key() {
@@ -82,7 +81,6 @@ static unsigned int ui_get_public_key_compare_button(
             UX_REDISPLAY();
             break;
         case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT: // Continue
-            io_exchange_with_code(EXCEPTION_OK, 32);
             ui_idle();
             break;
     }
@@ -92,10 +90,10 @@ static unsigned int ui_get_public_key_compare_button(
 static const bagl_element_t* ui_prepro_get_public_key_compare(
     const bagl_element_t* element
 ) {
-    if (element->component.userid == LEFT_ID 
+    if (element->component.userid == LEFT_ICON_ID 
         && ctx.display_index == 0)
         return NULL; // Hide Left Arrow at Left Edge
-    if (element->component.userid == RIGHT_ID 
+    if (element->component.userid == RIGHT_ICON_ID 
         && ctx.display_index == KEY_SIZE - DISPLAY_SIZE) 
         return NULL; // Hide Right Arrow at Right Edge
     return element;
@@ -128,6 +126,7 @@ static unsigned int ui_get_public_key_approve_button(
             break;
 
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
+            io_exchange_with_code(EXCEPTION_OK, 32);
             compare_pk();
             break;
 
@@ -139,10 +138,9 @@ static unsigned int ui_get_public_key_approve_button(
 }
 
 #elif defined(TARGET_NANOX)
-
 unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e) {
     io_exchange_with_code(EXCEPTION_OK, 32);
-    ui_idle();
+    compare_pk();
     return 0;
 }
 
@@ -153,7 +151,7 @@ unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e) {
 }
 
 UX_STEP_NOCB(
-    ux_compare_pk_flow_1_step,
+    ux_approve_pk_flow_1_step,
     bn,
     {
         "Export Public",
@@ -161,17 +159,8 @@ UX_STEP_NOCB(
     }
 );
 
-UX_STEP_NOCB(
-    ux_compare_pk_flow_2_step,
-    bnnn_paging,
-    {
-        .title = ctx.ui_approve_l1,
-        .text = (char*) ctx.full_key
-    }
-);
-
 UX_STEP_VALID(
-    ux_compare_pk_flow_3_step,
+    ux_approve_pk_flow_2_step,
     pb,
     io_seproxyhal_touch_pk_ok(NULL),
     {
@@ -181,7 +170,7 @@ UX_STEP_VALID(
 );
 
 UX_STEP_VALID(
-    ux_compare_pk_flow_4_step,
+    ux_approve_pk_flow_3_step,
     pb,
     io_seproxyhal_touch_pk_cancel(NULL),
     {
@@ -190,13 +179,31 @@ UX_STEP_VALID(
     }
 );
 
+UX_STEP_CB(
+    ux_compare_pk_flow_1_step,
+    bnnn_paging,
+    ui_idle(),
+    {
+        .title = "Public Key",
+        .text = (char*) ctx.full_key
+    }
+);
+
+UX_DEF(
+    ux_approve_pk_flow,
+    &ux_approve_pk_flow_1_step,
+    &ux_approve_pk_flow_2_step,
+    &ux_approve_pk_flow_3_step
+);
+
 UX_DEF(
     ux_compare_pk_flow,
-    &ux_compare_pk_flow_1_step,
-    &ux_compare_pk_flow_2_step,
-    &ux_compare_pk_flow_3_step,
-    &ux_compare_pk_flow_4_step
+    &ux_compare_pk_flow_1_step
 );
+
+void compare_pk() {
+    ux_flow_init(0, ux_compare_pk_flow, NULL);
+}
 
 #endif // TARGET
 
@@ -228,9 +235,6 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
-    // Title for Nano X compare screen
-    hedera_snprintf(ctx.ui_approve_l1, 40, "Public Key #%u", ctx.key_index);
-
     // Complete "Export Public | Key #x?"
     hedera_snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
 
@@ -243,7 +247,7 @@ void handle_get_public_key(
 
 #elif defined(TARGET_NANOX)
 
-    ux_flow_init(0, ux_compare_pk_flow, NULL);
+    ux_flow_init(0, ux_approve_pk_flow, NULL);
 
 #endif // TARGET
 

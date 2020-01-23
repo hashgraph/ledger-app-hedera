@@ -7,5 +7,5 @@
         ".clang-tidy": "yaml",
         "string_view": "c",
         "regex": "c"
-    }
+    },
 }

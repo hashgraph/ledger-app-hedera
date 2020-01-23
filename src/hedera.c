@@ -1,4 +1,5 @@
 #include <os.h>
+#include "globals.h"
 #include "printf.h"
 #include "hedera.h"
 
@@ -90,25 +91,24 @@ void hedera_sign(
     os_memset(&pk, 0, sizeof(pk));
 }
 
-#define HBAR 100000000
-
 char* hedera_format_tinybar(uint64_t tinybar) {
-    #define HBAR_BUF_SIZE 15
-
     static char buf[HBAR_BUF_SIZE];
     static uint64_t hbar;
     static uint64_t hbar_f;
     static int cnt;
-
-    hbar = (tinybar / HBAR);
-    hbar_f = (tinybar % HBAR * 10000 / HBAR);
+    
+    os_memset(buf, '\0', HBAR_BUF_SIZE);
+    cnt = 0;
+    
+    hbar = tinybar / HBAR;
+    hbar_f = tinybar % HBAR; 
 
     cnt = hedera_snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
 
     if (hbar_f != 0) {
-        cnt += hedera_snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.4llu", hbar_f);
+        cnt += hedera_snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.8llu", hbar_f);
     }
 
-    buf[cnt] = 0;
+    buf[cnt] = '\0';
     return buf;
 }
