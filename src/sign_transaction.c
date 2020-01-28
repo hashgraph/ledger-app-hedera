@@ -22,26 +22,26 @@ static struct sign_tx_context_t {
     uint8_t transfer_to_index;
 
     // Transaction Summary
-    char summary_line_1[40];
-    char summary_line_2[40];
+    char summary_line_1[DISPLAY_SIZE + 1];
+    char summary_line_2[DISPLAY_SIZE + 1];
+    char title[DISPLAY_SIZE + 1];
+    char partial[DISPLAY_SIZE + 1];
+    uint8_t step;
     
     // Transaction Amount
-    char amount[DISPLAY_SIZE * 3 + 1];
-    char amount_title[40];
-    char partial_amount[DISPLAY_SIZE + 1];
+    char amount[DISPLAY_SIZE * 2 + 1];
     uint8_t amount_display_index;  // current
     uint8_t amount_display_count;  // total
     
     // Transaction Fee
-    char fee[DISPLAY_SIZE * 3 + 1];
-    char fee_title[40];
-    char partial_fee[DISPLAY_SIZE + 1];
+    char fee[DISPLAY_SIZE * 2 + 1];
     uint8_t fee_display_index;  // current
     uint8_t fee_display_count;  // total
 
-    // Raw transaction from APDU
-    uint8_t raw_transaction[MAX_TX_SIZE];
-    uint16_t raw_transaction_length;
+    // Transaction Memo
+    char memo[MAX_MEMO_SIZE + 1];
+    uint8_t memo_display_index;
+    uint8_t memo_display_count;
 
     // Parsed transaction
     HederaTransactionBody transaction;
@@ -62,35 +62,21 @@ static const bagl_element_t ui_tx_summary_step[] = {
     UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.summary_line_2)
 };
 
-// Step 2: Amount
-static const bagl_element_t ui_tx_amount_step[] = {
+// Step 2 - 4: Amount, Fee, Memo
+static const bagl_element_t ui_tx_intermediate_step[] = {
     UI_BACKGROUND(),
     UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_LEFT),
     UI_ICON_RIGHT(RIGHT_ICON_ID, BAGL_GLYPH_ICON_RIGHT),
 
     // <<       >>
-    // Amount (1/X)
-    // <Partial Amount>
+    // <Title>
+    // <Partial>
 
-    UI_TEXT(LINE_1_ID, 0, 12, 128, ctx.amount_title),
-    UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.partial_amount)
+    UI_TEXT(LINE_1_ID, 0, 12, 128, ctx.title),
+    UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.partial)
 };
 
-// Step 3: Fee
-static const bagl_element_t ui_tx_fee_step[] = {
-    UI_BACKGROUND(),
-    UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_LEFT),
-    UI_ICON_RIGHT(RIGHT_ICON_ID, BAGL_GLYPH_ICON_RIGHT),
-
-    // <<       >>
-    // Fee (1/X)
-    // <Partial Fee>
-
-    UI_TEXT(LINE_1_ID, 0, 12, 128, ctx.fee_title),
-    UI_TEXT(LINE_2_ID, 0, 26, 128, ctx.partial_fee)
-};
-
-// Step 4: Confirm
+// Step 5: Confirm
 static const bagl_element_t ui_tx_confirm_step[] = {
     UI_BACKGROUND(),
     UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_LEFT),
@@ -104,7 +90,7 @@ static const bagl_element_t ui_tx_confirm_step[] = {
     UI_ICON(LINE_2_ID, 0, 24, 128, BAGL_GLYPH_ICON_CHECK)
 };
 
-// Step 5: Deny
+// Step 6: Deny
 static const bagl_element_t ui_tx_deny_step[] = {
     UI_BACKGROUND(),
     UI_ICON_LEFT(LEFT_ICON_ID, BAGL_GLYPH_ICON_LEFT),
@@ -124,82 +110,93 @@ unsigned int ui_tx_summary_step_button(
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
+            ctx.step = 2;
             ctx.amount_display_index = 1;
-            UX_DISPLAY(ui_tx_amount_step, NULL);
+            reformat_amount();
+            UX_DISPLAY(ui_tx_intermediate_step, NULL);
             break;
     }
 
     return 0;
 }
 
-// Step 2: Amount
-unsigned int ui_tx_amount_step_button(
+// Step 2 - 4 : Amount, Fee, Memo
+// Was separate BAGL stacks, but ran out of memory
+unsigned int ui_tx_intermediate_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
-            // Scroll left or return to summary
-            if (ctx.amount_display_index == 1) {
+            // Left Button released
+            if (ctx.step == 2 && ctx.amount_display_index == 1) {
+                // First screen of amount step
                 UX_DISPLAY(ui_tx_summary_step, NULL);
-            } else {
+            } else if (ctx.step == 2 && ctx.amount_display_index > 1) {
+                // Not the first screen of amount step
                 ctx.amount_display_index--;
                 reformat_amount();
                 UX_REDISPLAY();
-            }
-            break;
-        case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            // Scroll right or continue to fee
-            if (ctx.amount_display_index == ctx.amount_display_count) {
-                ctx.fee_display_index = 1;
-                reformat_fee();
-                UX_DISPLAY(ui_tx_fee_step, NULL);
-            } else {
-                ctx.amount_display_index++;
-                reformat_amount();
-                UX_REDISPLAY();
-            }
-            break;
-        case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT:
-            // Continue to Fee, regardless of current position
-            ctx.fee_display_index = 1;
-            UX_DISPLAY(ui_tx_fee_step, NULL);
-            break;
-    }
-
-    return 0;
-}
-
-// Step 3: Fee
-unsigned int ui_tx_fee_step_button(
-    unsigned int button_mask,
-    unsigned int button_mask_counter
-) {
-    switch(button_mask) {
-        case BUTTON_EVT_RELEASED | BUTTON_LEFT:
-            // Scroll left or return to amount
-            if (ctx.fee_display_index == 1) {
+            } else if (ctx.step == 3 && ctx.fee_display_index == 1) {
+                // First screen of fee step
+                ctx.step = 2;
                 ctx.amount_display_index = 1;
                 reformat_amount();
-                UX_DISPLAY(ui_tx_amount_step, NULL);
-            } else {
+                UX_REDISPLAY();
+            } else if (ctx.step == 3 && ctx.fee_display_index > 1) {
+                // Not the first screen of the fee step
                 ctx.fee_display_index--;
                 reformat_fee();
                 UX_REDISPLAY();
+            } else if (ctx.step == 4 && ctx.memo_display_index == 1) {
+                // First screen of the memo step
+                ctx.step = 3;
+                ctx.fee_display_index = 1;
+                reformat_fee();
+                UX_REDISPLAY();
+            } else if (ctx.step == 4 && ctx.memo_display_index > 1) {
+                // Not the first scren of the memo step
+                ctx.memo_display_index--;
+                reformat_memo();
+                UX_REDISPLAY();
             }
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            // Scroll right or continue to confirm
-            if (ctx.fee_display_index == ctx.fee_display_count) {
-                UX_DISPLAY(ui_tx_confirm_step, NULL);
-            } else {
+            // Right button released
+            if (ctx.step == 2 && ctx.amount_display_index == ctx.amount_display_count) {
+                // last screen of the amount step
+                ctx.step = 3;
+                ctx.fee_display_index = 1;
+                reformat_fee();
+                UX_REDISPLAY();
+            } else if (ctx.step == 2 && ctx.amount_display_index < ctx.amount_display_count) {
+                // not the last screen of the amount step
+                ctx.amount_display_index++;
+                reformat_amount();
+                UX_REDISPLAY();
+            } else if (ctx.step == 3 && ctx.fee_display_index == ctx.fee_display_count) {
+                // last screen of the fee step
+                ctx.step = 4;
+                ctx.memo_display_index = 1;
+                reformat_memo();
+                UX_REDISPLAY();
+            } else if (ctx.step == 3 && ctx.fee_display_index < ctx.fee_display_count) {
+                // not the last screen of the fee step
                 ctx.fee_display_index++;
                 reformat_fee();
+                UX_REDISPLAY();
+            } else if (ctx.step == 4 && ctx.memo_display_index == ctx.memo_display_count) {
+                // last screen of the memo step
+                UX_DISPLAY(ui_tx_confirm_step, NULL);
+            } else if (ctx.step == 4 && ctx.memo_display_index < ctx.memo_display_count) {
+                // not the last screen of the memo step
+                ctx.memo_display_index++;
+                reformat_memo();
                 UX_REDISPLAY();
             }
             break;
         case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT:
-            // Continue to confirm, regardless of current position
+            // Skip to confirm screen
             UX_DISPLAY(ui_tx_confirm_step, NULL);
             break;
     }
@@ -207,30 +204,25 @@ unsigned int ui_tx_fee_step_button(
     return 0;
 }
 
-// Step 4: Confirm
+// Step 5: Confirm
 unsigned int ui_tx_confirm_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
-            // Return to Fee
-            ctx.fee_display_index = 1;
-            reformat_fee();
-            UX_DISPLAY(ui_tx_fee_step, NULL);
+            // Return to Memo (and other steps)
+            ctx.step = 4;
+            ctx.memo_display_index = 1;
+            reformat_memo();
+            UX_DISPLAY(ui_tx_intermediate_step, NULL);
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
             // Continue to Deny
             UX_DISPLAY(ui_tx_deny_step, NULL);
             break;
         case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT:
-            // Sign and exchange ok
-            hedera_sign(
-                ctx.key_index,
-                ctx.raw_transaction,
-                ctx.raw_transaction_length,
-                G_io_apdu_buffer
-            );
+            // Exchange Signature (OK)
             io_exchange_with_code(EXCEPTION_OK, 64);
             ui_idle();
             break;
@@ -239,7 +231,7 @@ unsigned int ui_tx_confirm_step_button(
     return 0;
 }
 
-// Step 5: Deny
+// Step 6: Deny
 unsigned int ui_tx_deny_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
@@ -261,15 +253,15 @@ unsigned int ui_tx_deny_step_button(
 
 void reformat_amount() {
     hedera_snprintf(
-        ctx.amount_title,
-        40, 
+        ctx.title,
+        DISPLAY_SIZE, 
         "Amount (%u/%u)",
         ctx.amount_display_index,
         ctx.amount_display_count
     );
-    os_memset(ctx.partial_amount, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
     os_memmove(
-        ctx.partial_amount,
+        ctx.partial,
         ctx.amount + (DISPLAY_SIZE * (ctx.amount_display_index - 1)),
         DISPLAY_SIZE
     );
@@ -277,35 +269,51 @@ void reformat_amount() {
 
 void reformat_fee() {
     hedera_snprintf(
-        ctx.fee_title,
-        40,
+        ctx.title,
+        DISPLAY_SIZE,
         "Fee (%u/%u)",
         ctx.fee_display_index,
         ctx.fee_display_count
     );
-    os_memset(ctx.partial_fee, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
     os_memmove(
-        ctx.partial_fee,
+        ctx.partial,
         ctx.fee + (DISPLAY_SIZE * (ctx.fee_display_index - 1)),
         DISPLAY_SIZE
     );
 }
 
-uint8_t num_screens(char* text) {
-    uint8_t screens = 0;
-    size_t len = strlen(text);
-    screens += len / DISPLAY_SIZE;
-    if (len % DISPLAY_SIZE != 0) screens += 1;
+void reformat_memo() {
+    hedera_snprintf(
+        ctx.title,
+        DISPLAY_SIZE,
+        "Memo (%u/%u)",
+        ctx.memo_display_index,
+        ctx.memo_display_count
+    );
+    os_memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
+    os_memmove(
+        ctx.partial,
+        ctx.memo + (DISPLAY_SIZE * (ctx.memo_display_index - 1)),
+        DISPLAY_SIZE
+    );
+}
+
+uint8_t num_screens(size_t length) {
+    if (length == 0) return 1;
+    uint8_t screens = length / DISPLAY_SIZE;
+    if (length % DISPLAY_SIZE > 0) screens += 1;
     return screens;
 }
 
 void setup_nanos_paging() {
     ctx.amount_display_index = 1;
-    ctx.amount_display_count = num_screens(ctx.amount);
+    ctx.amount_display_count = num_screens(strlen(ctx.amount));
     ctx.fee_display_index = 1;
-    ctx.fee_display_count = num_screens(ctx.fee);
+    ctx.fee_display_count = num_screens(strlen(ctx.fee));
+    ctx.memo_display_index = 1;
+    ctx.memo_display_count = num_screens(strlen(ctx.memo));
     reformat_amount();
-    reformat_fee();
 }
 
 #elif defined(TARGET_NANOX)
@@ -362,9 +370,18 @@ UX_STEP_NOCB(
     }
 );
 
-// Step 4: Confirm
-UX_STEP_VALID(
+UX_STEP_NOCB(
     ux_tx_flow_4_step,
+    bnnn_paging,
+    {
+        .title = "Memo",
+        .text = (char*) ctx.memo
+    }
+);
+
+// Step 5: Confirm
+UX_STEP_VALID(
+    ux_tx_flow_5_step,
     pbb,
     io_seproxyhal_tx_approve(NULL),
     {
@@ -373,9 +390,9 @@ UX_STEP_VALID(
     }
 );
 
-// Step 5: Reject
+// Step 6: Reject
 UX_STEP_VALID(
-    ux_tx_flow_5_step,
+    ux_tx_flow_6_step,
     pbb,
     io_seproxyhal_tx_reject(NULL),
     {
@@ -391,28 +408,40 @@ UX_DEF(
     &ux_tx_flow_2_step,
     &ux_tx_flow_3_step,
     &ux_tx_flow_4_step,
-    &ux_tx_flow_5_step
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_6_step
 );
 
 #endif
 
 void handle_transaction_body() {
-    os_memset(ctx.fee, '\0', DISPLAY_SIZE * 3 + 1);
-    os_memset(ctx.amount, '\0', DISPLAY_SIZE * 3 + 1);
+    os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
+
     // <Do Action> 
     // with Key #X?
     hedera_snprintf(
         ctx.summary_line_2,
-        40,
+        DISPLAY_SIZE,
         "with Key #%u?",
         ctx.key_index
     );
 
     hedera_snprintf(
         ctx.fee,
-        DISPLAY_SIZE * 3,
+        DISPLAY_SIZE * 2,
         "%s hbar",
         hedera_format_tinybar(ctx.transaction.transactionFee)
+    );
+
+    hedera_snprintf(
+        ctx.memo,
+        MAX_MEMO_SIZE,
+        "%s",
+        ctx.transaction.memo
     );
 
     // Handle parsed protobuf message of transaction body
@@ -421,12 +450,12 @@ void handle_transaction_body() {
             // Create Account Transaction
             hedera_snprintf(
                 ctx.summary_line_1,
-                40,
+                DISPLAY_SIZE,
                 "Create Account"
             );
             hedera_snprintf(
                 ctx.amount,
-                DISPLAY_SIZE * 3,
+                DISPLAY_SIZE * 2,
                 "%s hbar",
                 hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance)
             );
@@ -446,7 +475,7 @@ void handle_transaction_body() {
                     // Verify Account Transaction
                     hedera_snprintf(
                         ctx.summary_line_1,
-                        40,
+                        DISPLAY_SIZE,
                         "Verify %llu.%llu.%llu",
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
@@ -454,7 +483,7 @@ void handle_transaction_body() {
                     );
                     hedera_snprintf(
                         ctx.amount,
-                        DISPLAY_SIZE * 3,
+                        DISPLAY_SIZE * 2,
                         "%s hbar",
                         hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount)
                     );
@@ -468,15 +497,15 @@ void handle_transaction_body() {
                 }
                 hedera_snprintf(
                     ctx.summary_line_1,
-                    40,
-                    "Transfer to %llu.%llu.%llu",
+                    DISPLAY_SIZE,
+                    "Send to %llu.%llu.%llu",
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
                 );
                 hedera_snprintf(
                     ctx.amount,
-                    DISPLAY_SIZE * 3,
+                    DISPLAY_SIZE * 2,
                     "%s hbar",
                     hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
                 );
@@ -513,21 +542,30 @@ void handle_sign_transaction(
     // Key Index
     ctx.key_index = U4LE(buffer, 0);
     
-    // Raw Tx Length
-    ctx.raw_transaction_length = len - 4;
-    
+    // Raw Tx
+    uint8_t raw_transaction[MAX_TX_SIZE];
+    int raw_transaction_length = len - 4;
+
     // Oops Oof Owie
-    if (ctx.raw_transaction_length > MAX_TX_SIZE) {
+    if (raw_transaction_length > MAX_TX_SIZE) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
-    // Extract Transaction Message
-    os_memmove(ctx.raw_transaction, (buffer + 4), ctx.raw_transaction_length);
+    // copy raw transaction
+    os_memmove(raw_transaction, (buffer + 4), raw_transaction_length);
+
+    // Sign Transaction
+    hedera_sign(
+        ctx.key_index,
+        raw_transaction,
+        raw_transaction_length,
+        G_io_apdu_buffer
+    );
 
     // Make in memory buffer into stream
     pb_istream_t stream = pb_istream_from_buffer(
-        ctx.raw_transaction, 
-        ctx.raw_transaction_length
+        raw_transaction, 
+        raw_transaction_length
     );
 
     // Decode the Transaction

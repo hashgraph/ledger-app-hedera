@@ -9,33 +9,28 @@ unsigned int ui_tx_summary_step_button(
     unsigned int button_mask_counter
 );
 
-// Step 2
-unsigned int ui_tx_amount_step_button(
+// Step 2 - 4
+unsigned int ui_tx_intermediate_step_button(
     unsigned int button_mask, 
     unsigned int button_mask_counter
 );
 
-// Step 3
-unsigned int ui_tx_fee_step_button(
-    unsigned int button_mask,
-    unsigned int button_mask_counter
-);
-
-// Step 4
+// Step 5
 unsigned int ui_tx_confirm_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 );
 
-// Step 5
+// Step 6
 unsigned int ui_tx_deny_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 );
 
-uint8_t num_screens(char* text);
+uint8_t num_screens(size_t length);
 void reformat_amount();
 void reformat_fee();
+void reformat_memo();
 void setup_nanos_paging();
 
 #elif defined(TARGET_NANOX)

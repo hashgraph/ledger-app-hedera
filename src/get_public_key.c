@@ -18,7 +18,7 @@ static struct get_public_key_context_t {
     uint32_t key_index;
 
     // Lines on the UI Screen
-    char ui_approve_l2[40];
+    char ui_approve_l2[DISPLAY_SIZE + 1];
 
     cx_ecfp_public_key_t public;
 
@@ -236,7 +236,7 @@ void handle_get_public_key(
     ctx.key_index = U4LE(buffer, 0);
 
     // Complete "Export Public | Key #x?"
-    hedera_snprintf(ctx.ui_approve_l2, 40, "Key #%u?", ctx.key_index);
+    hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
 
     // Populate context with PK
     get_pk();
