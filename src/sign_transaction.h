@@ -4,6 +4,9 @@
 #if defined(TARGET_NANOS)
 // Forward declarations for Nano S UI
 // Step 1
+static const bagl_element_t* ui_prepro_tx_summary_step(
+    const bagl_element_t* element
+);
 unsigned int ui_tx_summary_step_button(
     unsigned int button_mask, 
     unsigned int button_mask_counter

@@ -27,6 +27,7 @@ static struct sign_tx_context_t {
     char title[DISPLAY_SIZE + 1];
     char partial[DISPLAY_SIZE + 1];
     uint8_t step;
+    bool verify;
     
     // Transaction Amount
     char amount[DISPLAY_SIZE * 2 + 1];
@@ -53,6 +54,8 @@ static struct sign_tx_context_t {
 static const bagl_element_t ui_tx_summary_step[] = {
     UI_BACKGROUND(),
     UI_ICON_RIGHT(RIGHT_ICON_ID, BAGL_GLYPH_ICON_RIGHT),
+    UI_ICON_LEFT(LEFT_ICON_ID_VERIFY, BAGL_GLYPH_ICON_CROSS),
+    UI_ICON_RIGHT(RIGHT_ICON_ID_VERIFY, BAGL_GLYPH_ICON_CHECK),
 
     // ()       >>
     // Line 1
@@ -104,16 +107,46 @@ static const bagl_element_t ui_tx_deny_step[] = {
 };
 
 // Step 1: Transaction Summary
+// For Verify Transactions, one step only
+static const bagl_element_t* ui_prepro_tx_summary_step(
+    const bagl_element_t* element
+) {
+    if (element->component.userid == LEFT_ICON_ID_VERIFY 
+        && ctx.verify == false)
+        return NULL; // Hide Reject on Non-Verify transactions
+    if (element->component.userid == RIGHT_ICON_ID_VERIFY 
+        && ctx.verify == false) 
+        return NULL; // Hide Accept on Non-Verify transactions
+    if (element->component.userid == RIGHT_ICON_ID
+        && ctx.verify == true)
+        return NULL; // Hide Next on Verify transactions
+    return element;
+}
+
+// Step 1: Transaction Summary
 unsigned int ui_tx_summary_step_button(
     unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            ctx.step = 2;
-            ctx.amount_display_index = 1;
-            reformat_amount();
-            UX_DISPLAY(ui_tx_intermediate_step, NULL);
+            if (!ctx.verify) {
+                ctx.step = 2;
+                ctx.amount_display_index = 1;
+                reformat_amount();
+                UX_DISPLAY(ui_tx_intermediate_step, NULL);
+            } else {
+                // verify account transaction
+                io_exchange_with_code(EXCEPTION_OK, 64);
+                ui_idle();
+            }
+            break;
+        case BUTTON_EVT_RELEASED | BUTTON_LEFT:
+            if (ctx.verify) {
+                // verify account transaction
+                io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+                ui_idle();
+            }
             break;
     }
 
@@ -412,6 +445,14 @@ UX_DEF(
     &ux_tx_flow_6_step
 );
 
+// Verify UX Flow
+UX_DEF(
+    ux_verify_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_6_step
+);
+
 #endif
 
 void handle_transaction_body() {
@@ -420,6 +461,8 @@ void handle_transaction_body() {
     os_memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
     os_memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
     os_memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
+
+    ctx.verify = false;
 
     // <Do Action> 
     // with Key #X?
@@ -473,6 +516,7 @@ void handle_transaction_body() {
                 ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
                 ctx.transaction.transactionFee == 1) {
                     // Verify Account Transaction
+                    ctx.verify = true;
                     hedera_snprintf(
                         ctx.summary_line_1,
                         DISPLAY_SIZE,
@@ -519,9 +563,13 @@ void handle_transaction_body() {
 
 #if defined(TARGET_NANOS)
     setup_nanos_paging();
-    UX_DISPLAY(ui_tx_summary_step, NULL);
+    UX_DISPLAY(ui_tx_summary_step, ui_prepro_tx_summary_step);
 #elif defined(TARGET_NANOX)
-    ux_flow_init(0, ux_tx_flow, NULL);
+    if (ctx.verify) {
+        ux_flow_init(0, ux_verify_flow, NULL);
+    } else {
+        ux_flow_init(0, ux_tx_flow, NULL);
+    }
 #endif
 }
 

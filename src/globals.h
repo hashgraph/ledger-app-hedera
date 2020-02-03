@@ -28,7 +28,9 @@
 // User IDs for BAGL Elements
 static const uint8_t LEFT_ICON_ID = 0x01;
 static const uint8_t RIGHT_ICON_ID = 0x02;
-static const uint8_t LINE_1_ID = 0x03;
-static const uint8_t LINE_2_ID = 0x04;
+static const uint8_t LEFT_ICON_ID_VERIFY = 0x03;
+static const uint8_t RIGHT_ICON_ID_VERIFY = 0x04;
+static const uint8_t LINE_1_ID = 0x05;
+static const uint8_t LINE_2_ID = 0x06;
 
 #endif // LEDGER_HEDERA_GLOBALS_H
