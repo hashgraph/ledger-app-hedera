@@ -354,12 +354,6 @@ void setup_nanos_paging() {
 
 // Confirm Callback
 unsigned int io_seproxyhal_tx_approve(const bagl_element_t* e) {
-    hedera_sign(
-        ctx.key_index,
-        ctx.raw_transaction,
-        ctx.raw_transaction_length,
-        G_io_apdu_buffer
-    );
     io_exchange_with_code(EXCEPTION_OK, 64);
     ui_idle();
     return 0;
