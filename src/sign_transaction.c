@@ -541,17 +541,241 @@ unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e) {
     return 0;
 }
 
-// https://github.com/xar-network/ledger-xar-app/src/view_x.c
-void x_start_tx_loop() {
+void reformat_operator() {
+    hedera_snprintf(
+        ctx.full,
+        ACCOUNT_ID_SIZE,
+        "%llu.%llu.%llu",
+        ctx.transaction.transactionID.accountID.shardNum,
+        ctx.transaction.transactionID.accountID.realmNum,
+        ctx.transaction.transactionID.accountID.accountNum
+    );
 
+    hedera_sprintf(
+        ctx.title,
+        "Operator"
+    );
+}
+
+void reformat_accounts(uint8_t transfer_index) {
+    hedera_snprintf(
+        ctx.full,
+        ACCOUNT_ID_SIZE,
+        "%llu.%llu.%llu",
+        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.shardNum,
+        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.realmNum,
+        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.accountNum
+    );
+}
+
+void reformat_senders() {
+    hedera_sprintf(
+        ctx.title,
+        "Sender",
+    );
+    reformat_accounts(ctx.transfer_from_index);
+}
+
+void reformat_recipients() {
+    hedera_sprintf(
+        ctx.title,
+        "Recipient"
+    );
+    reformat_accounts(ctx.transfer_to_index);
+}
+
+void reformat_amount() {
+    switch (ctx.type) {
+        case Create:
+            hedera_snprintf(
+                ctx.full,
+                DISPLAY_SIZE * 3,
+                "%s hbar",
+                hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance)
+            );
+            break;
+        case Transfer:
+            hedera_snprintf(
+                ctx.full,
+                DISPLAY_SIZE * 3,
+                "%s hbar",
+                hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
+            );
+            break;
+    }
+
+    hedera_sprintf(
+        ctx.title,
+        ctx.type == Create ? "Balance" : "Amount"
+    );
+}
+
+void reformat_fee() {
+    hedera_snprintf(
+        ctx.full,
+        DISPLAY_SIZE * 3,
+        "%s hbar",
+        hedera_format_tinybar(ctx.transaction.transactionFee)
+    );
+
+    hedera_sprintf(
+        ctx.title,
+        "Fee"
+    );
+}
+
+void reformat_memo() {
+    hedera_snprintf(
+        ctx.full,
+        MAX_MEMO_SIZE,
+        "%s",
+        ctx.transaction.memo
+    );
+
+    if (strlen(ctx.full) > MAX_MEMO_SIZE) {
+        // :grimacing:
+        THROW(EXCEPTION_MALFORMED_APDU); 
+    }
+
+    hedera_sprintf(
+        ctx.title,
+        "Memo"
+    );
+}
+
+void x_reformat() {
+    switch (ctx.step) {
+        case Operator:
+            reformat_operator();
+            break;
+        case Senders:
+            reformat_senders();
+            break;
+        case Recipients:
+            reformat_recipients();
+            break;
+        case Amount:
+            reformat_amount();
+            break;
+        case Fee:
+            reformat_fee();
+            break;
+        case Memo:
+            reformat_memo();
+            break;
+    }
+}
+
+void x_step_prev() {
+    switch (ctx.step) {
+        case Operator:
+            ctx.step = Summary;
+            break;
+        case Senders:
+            ctx.step = Operator;
+            break;
+        case Recipients:
+            ctx.step = Senders;
+            break; 
+        case Amount:
+            if (ctx.type == Create) {
+                ctx.step = Operator;
+            } else {
+                ctx.step = Recipients;
+            }
+            break;
+        case Fee:
+            ctx.step = Amount;
+            break;
+        case Memo:
+            ctx.step = Fee;
+            break;
+        case Confirm:
+            if (ctx.type == Verify) {
+                ctx.step = Senders;
+            }
+            break;
+        case Deny:
+            ctx.step = Confirm;
+            break;
+    }
+}
+
+void x_step_next() {
+    switch (ctx.step) {
+        case Summary:
+            ctx.step = Operator;
+            break;
+        case Operator:
+            if (ctx.type == Create) {
+                ctx.step = Amount;
+            } else {
+                ctx.step = Senders;
+            }
+            break;
+        case Senders:
+            if (ctx.type == Verify) {
+                ctx.step = Confirm;
+            } else {
+                ctx.step = Recipients;
+            }
+            break;
+        case Recipients:
+            ctx.step = Amount;
+            break;
+        case Amount:
+            ctx.step = Fee;
+            break;
+        case Fee:
+            ctx.step = Memo;
+            break;
+        case Memo:
+            ctx.step = Confirm;
+            break;
+        case Confirm:
+            ctx.step = Deny;
+            break;
+    }
+}
+
+void x_start_tx_loop() {
+    if (ctx.step > Summary && ctx.step < Confirm) {
+        // On an intermediate step => from Right
+        x_step_prev();
+
+        if (ctx.step < Operator) {
+            // Step decreased beyond loop, exit
+            ux_flow_prev();
+            return;
+        }
+    } else {
+        // Entering Loop from Left
+        x_step_next();
+    }
+
+    ux_flow_next();
 }
 
 void x_continue_tx_loop() {
-
+    x_reformat();
 }
 
 void x_end_tx_loop() {
+    if (ctx.step > Summary && ctx.step < Confirm) {
+        // On an intermediate step => from Left
+        x_step_next();
 
+        if (ctx.step > Memo) {
+            // Step increased beyond loop, exit
+            ux_flow_next();
+            return;
+        }
+    } else {
+        // Returning to Loop from Right
+        x_step_prev();
+    }
+
+    ux_flow_prev();
 }
 
 UX_STEP_NOCB(

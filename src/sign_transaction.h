@@ -53,12 +53,6 @@ void count_screens();
 void shift_display();
 bool first_screen();
 bool last_screen();
-void reformat_operator();
-void reformat_senders();
-void reformat_recipients();
-void reformat_amount();
-void reformat_fee();
-void reformat_memo();
 
 #elif defined(TARGET_NANOX)
 // Forward declarations for Nano X UI
@@ -70,6 +64,12 @@ unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e);
 
 #endif // TARGET
 
+void reformat_operator();
+void reformat_senders();
+void reformat_recipients();
+void reformat_amount();
+void reformat_fee();
+void reformat_memo();
 void handle_transaction_body();
 
 #endif //LEDGER_APP_HEDERA_SIGN_TRANSACTION_H
