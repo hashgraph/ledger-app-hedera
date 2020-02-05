@@ -6,7 +6,7 @@
 
 #define MAX_TX_SIZE 512
 #define FULL_ADDRESS_LENGTH 54
-#define ACCOUNT_ID_SIZE sizeof(uint64_t) * 8 * 3 + 2
+#define ACCOUNT_ID_SIZE 19 * 3 + 2 + 1
 #define KEY_SIZE 64
 #define MAX_MEMO_SIZE 200
 #define SIGNATURE_SIZE 32

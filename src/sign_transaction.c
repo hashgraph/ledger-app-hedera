@@ -107,10 +107,16 @@ unsigned int ui_tx_summary_step_button(
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
+            if (ctx.type == Verify) {
+                ctx.step = Senders;
+                ctx.display_index = 1;
+                reformat_senders();
+            } else {
                 ctx.step = Operator;
                 ctx.display_index = 1;
                 reformat_operator();
-                UX_DISPLAY(ui_tx_intermediate_step, NULL);
+            }
+            UX_DISPLAY(ui_tx_intermediate_step, NULL);
             break;
     }
 
@@ -133,9 +139,15 @@ void handle_intermediate_left_press() {
         } break;
         case Senders: {
             if (first_screen()) {  // Return to Operator
-                ctx.step = Operator;
-                ctx.display_index = 1;
-                reformat_operator();
+                if (ctx.type == Verify) {
+                    ctx.step = Summary;
+                    ctx.display_index = 1;
+                    UX_DISPLAY(ui_tx_summary_step, NULL);
+                } else {
+                    ctx.step = Operator;
+                    ctx.display_index = 1;
+                    reformat_operator();
+                }
             } else {  // Scroll Left
                 ctx.display_index--;
                 reformat_senders();
@@ -430,7 +442,7 @@ void reformat_accounts(char* title_part, uint8_t transfer_index) {
 
 void reformat_senders() {
     if (ctx.type == Verify) {
-        reformat_accounts("Verify", 0);
+        reformat_accounts("Account", 0);
     } else {
         reformat_accounts("Sender", ctx.transfer_from_index);
     }
