@@ -609,17 +609,27 @@ void handle_transaction_body() {
 static struct sign_tx_context_t {
     // ui common
     uint32_t key_index;
+    uint8_t transfer_from_index;
     uint8_t transfer_to_index;
 
     // Transaction Summary
     char summary_line_1[DISPLAY_SIZE + 1];
     char summary_line_2[DISPLAY_SIZE + 1];
-    char title[DISPLAY_SIZE + 1];
+    char senders_title[DISPLAY_SIZE + 1];
+    char amount_title[DISPLAY_SIZE + 1];
     char partial[DISPLAY_SIZE + 1];
     
-    uint8_t step;
-    bool verify;
+    enum TransactionType type;
     
+    // Transaction Operator
+    char operator[DISPLAY_SIZE * 2 + 1];
+
+    // Transaction Senders
+    char senders[DISPLAY_SIZE * 2 + 1];
+
+    // Transaction Recipients
+    char recipients[DISPLAY_SIZE * 2 + 1];
+
     // Transaction Amount
     char amount[DISPLAY_SIZE * 2 + 1];
     
@@ -649,7 +659,6 @@ unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e) {
     return 0;
 }
 
-// Step 1: Summary
 UX_STEP_NOCB(
     ux_tx_flow_1_step,
     bnn,
@@ -660,19 +669,44 @@ UX_STEP_NOCB(
     }
 );
 
-// Step 2: Amount
 UX_STEP_NOCB(
     ux_tx_flow_2_step,
     bnnn_paging,
     {
-        .title = "Amount",
+        .title = "Operator",
+        .text = (char*) ctx.operator
+    }
+);
+
+UX_STEP_NOCB(
+    ux_tx_flow_3_step,
+    bnnn_paging,
+    {
+        .title = (char*) ctx.senders_title,
+        .text = (char*) ctx.senders
+    }
+);
+
+UX_STEP_NOCB(
+    ux_tx_flow_4_step,
+    bnnn_paging,
+    {
+        .title = "Recipient",
+        .text = (char*) ctx.recipients
+    }
+);
+
+UX_STEP_NOCB(
+    ux_tx_flow_5_step,
+    bnnn_paging,
+    {
+        .title = (char*) ctx.amount_title,
         .text = (char*) ctx.amount
     }
 );
 
-// Step 3: Fee
 UX_STEP_NOCB(
-    ux_tx_flow_3_step,
+    ux_tx_flow_6_step,
     bnnn_paging,
     {
         .title = "Fee",
@@ -681,7 +715,7 @@ UX_STEP_NOCB(
 );
 
 UX_STEP_NOCB(
-    ux_tx_flow_4_step,
+    ux_tx_flow_7_step,
     bnnn_paging,
     {
         .title = "Memo",
@@ -689,10 +723,9 @@ UX_STEP_NOCB(
     }
 );
 
-// Step 5: Confirm
 UX_STEP_VALID(
-    ux_tx_flow_5_step,
-    pbb,
+    ux_tx_flow_8_step,
+    pb,
     io_seproxyhal_tx_approve(NULL),
     {
         &C_icon_validate_14,
@@ -700,10 +733,9 @@ UX_STEP_VALID(
     }
 );
 
-// Step 6: Reject
 UX_STEP_VALID(
-    ux_tx_flow_6_step,
-    pbb,
+    ux_tx_flow_9_step,
+    pb,
     io_seproxyhal_tx_reject(NULL),
     {
         &C_icon_crossmark,
@@ -711,33 +743,54 @@ UX_STEP_VALID(
     }
 );
 
-// Transaction UX Flow
+// Transfer UX Flow
 UX_DEF(
-    ux_tx_flow,
+    ux_transfer_flow,
     &ux_tx_flow_1_step,
     &ux_tx_flow_2_step,
     &ux_tx_flow_3_step,
     &ux_tx_flow_4_step,
     &ux_tx_flow_5_step,
-    &ux_tx_flow_6_step
+    &ux_tx_flow_6_step,
+    &ux_tx_flow_7_step,
+    &ux_tx_flow_8_step,
+    &ux_tx_flow_9_step
+);
+
+// Create UX Flow
+UX_DEF(
+    ux_create_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_2_step,
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_6_step,
+    &ux_tx_flow_7_step,
+    &ux_tx_flow_8_step,
+    &ux_tx_flow_9_step
 );
 
 // Verify UX Flow
 UX_DEF(
     ux_verify_flow,
     &ux_tx_flow_1_step,
-    &ux_tx_flow_5_step,
-    &ux_tx_flow_6_step
+    &ux_tx_flow_3_step,
+    &ux_tx_flow_8_step,
+    &ux_tx_flow_9_step
 );
 
 void handle_transaction_body() {
     os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
     os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.amount_title, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.senders_title, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.operator, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.senders, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.recipients, '\0', DISPLAY_SIZE * 2 + 1);
     os_memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
     os_memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
     os_memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
 
-    ctx.verify = false;
+    ctx.type = Unknown;
 
     // <Do Action> 
     // with Key #X?
@@ -746,6 +799,15 @@ void handle_transaction_body() {
         DISPLAY_SIZE,
         "with Key #%u?",
         ctx.key_index
+    );
+
+    hedera_snprintf(
+        ctx.operator,
+        DISPLAY_SIZE * 2,
+        "%llu.%llu.%llu",
+        ctx.transaction.transactionID.accountID.shardNum,
+        ctx.transaction.transactionID.accountID.realmNum,
+        ctx.transaction.transactionID.accountID.accountNum
     );
 
     hedera_snprintf(
@@ -762,14 +824,28 @@ void handle_transaction_body() {
         ctx.transaction.memo
     );
 
+    hedera_sprintf(
+        ctx.amount_title,
+        "Amount"
+    );
+
+    hedera_sprintf(
+        ctx.senders_title,
+        "Sender"
+    );
+
     // Handle parsed protobuf message of transaction body
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
+            ctx.type = Create;
             // Create Account Transaction
-            hedera_snprintf(
+            hedera_sprintf(
                 ctx.summary_line_1,
-                DISPLAY_SIZE,
                 "Create Account"
+            );
+            hedera_sprintf(
+                ctx.amount_title,
+                "Balance"
             );
             hedera_snprintf(
                 ctx.amount,
@@ -791,11 +867,19 @@ void handle_transaction_body() {
                 ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
                 ctx.transaction.transactionFee == 1) {
                     // Verify Account Transaction
-                    ctx.verify = true;
-                    hedera_snprintf(
+                    ctx.type = Verify;
+                    hedera_sprintf(
                         ctx.summary_line_1,
-                        DISPLAY_SIZE,
-                        "Verify %llu.%llu.%llu",
+                        "Verify Account"
+                    );
+                    hedera_sprintf(
+                        ctx.senders_title,
+                        "Account"
+                    );
+                    hedera_snprintf(
+                        ctx.senders,
+                        DISPLAY_SIZE * 2,
+                        "%llu.%llu.%llu",
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
                         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
@@ -810,14 +894,31 @@ void handle_transaction_body() {
             } else { // Number of Accounts == 2
                 // Some other Transfer Transaction
                 // Determine Sender based on amount
+                ctx.type = Transfer;
+                hedera_sprintf(
+                    ctx.summary_line_1,
+                    "Transfer"
+                );
+
+                ctx.transfer_from_index = 0;
                 ctx.transfer_to_index = 1;
                 if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {
+                    ctx.transfer_from_index = 1;
                     ctx.transfer_to_index = 0;
                 }
+
                 hedera_snprintf(
-                    ctx.summary_line_1,
-                    DISPLAY_SIZE,
-                    "Send to %llu.%llu.%llu",
+                    ctx.senders,
+                    DISPLAY_SIZE * 2,
+                    "%llu.%llu.%llu",
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_from_index].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_from_index].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_from_index].accountID.accountNum
+                );
+                hedera_snprintf(
+                    ctx.recipients,
+                    DISPLAY_SIZE * 2,
+                    "%llu.%llu.%llu",
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
@@ -834,12 +935,19 @@ void handle_transaction_body() {
         default:
             // Unsupported
             THROW(EXCEPTION_MALFORMED_APDU);
+            break;
     }
 
-    if (ctx.verify) {
-        ux_flow_init(0, ux_verify_flow, NULL);
-    } else {
-        ux_flow_init(0, ux_tx_flow, NULL);
+    switch (ctx.type) {
+        case Verify:
+            ux_flow_init(0, ux_verify_flow, NULL);
+            break;
+        case Create:
+            ux_flow_init(0, ux_create_flow, NULL);
+            break;
+        case Transfer:
+            ux_flow_init(0, ux_transfer_flow, NULL);
+            break;
     }
 }
 #endif
