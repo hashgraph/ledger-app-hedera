@@ -16,6 +16,7 @@
 #include "ui.h"
 #include "sign_transaction.h"
 
+#if defined(TARGET_NANOS)
 static struct sign_tx_context_t {
     // ui common
     uint32_t key_index;
@@ -44,7 +45,6 @@ static struct sign_tx_context_t {
     HederaTransactionBody transaction;
 } ctx;
 
-#if defined(TARGET_NANOS)
 // UI Definition for Nano S
 // Step 1: Transaction Summary
 static const bagl_element_t ui_tx_summary_step[] = {
@@ -524,338 +524,6 @@ void reformat_memo() {
     shift_display();
 }
 
-#elif defined(TARGET_NANOX)
-// UI Definition for Nano X
-
-// Confirm Callback
-unsigned int io_seproxyhal_tx_approve(const bagl_element_t* e) {
-    io_exchange_with_code(EXCEPTION_OK, 64);
-    ui_idle();
-    return 0;
-}
-
-// Reject Callback
-unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e) {
-    io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
-    ui_idle();
-    return 0;
-}
-
-void reformat_operator() {
-    hedera_snprintf(
-        ctx.full,
-        ACCOUNT_ID_SIZE,
-        "%llu.%llu.%llu",
-        ctx.transaction.transactionID.accountID.shardNum,
-        ctx.transaction.transactionID.accountID.realmNum,
-        ctx.transaction.transactionID.accountID.accountNum
-    );
-
-    hedera_sprintf(
-        ctx.title,
-        "Operator"
-    );
-}
-
-void reformat_accounts(uint8_t transfer_index) {
-    hedera_snprintf(
-        ctx.full,
-        ACCOUNT_ID_SIZE,
-        "%llu.%llu.%llu",
-        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.shardNum,
-        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.realmNum,
-        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[transfer_index].accountID.accountNum
-    );
-}
-
-void reformat_senders() {
-    hedera_sprintf(
-        ctx.title,
-        "Sender"
-    );
-    reformat_accounts(ctx.transfer_from_index);
-}
-
-void reformat_recipients() {
-    hedera_sprintf(
-        ctx.title,
-        "Recipient"
-    );
-    reformat_accounts(ctx.transfer_to_index);
-}
-
-void reformat_amount() {
-    switch (ctx.type) {
-        case Create:
-            hedera_snprintf(
-                ctx.full,
-                DISPLAY_SIZE * 3,
-                "%s hbar",
-                hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance)
-            );
-            break;
-        case Transfer:
-            hedera_snprintf(
-                ctx.full,
-                DISPLAY_SIZE * 3,
-                "%s hbar",
-                hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
-            );
-            break;
-    }
-
-    hedera_sprintf(
-        ctx.title,
-        ctx.type == Create ? "Balance" : "Amount"
-    );
-}
-
-void reformat_fee() {
-    hedera_snprintf(
-        ctx.full,
-        DISPLAY_SIZE * 3,
-        "%s hbar",
-        hedera_format_tinybar(ctx.transaction.transactionFee)
-    );
-
-    hedera_sprintf(
-        ctx.title,
-        "Fee"
-    );
-}
-
-void reformat_memo() {
-    hedera_snprintf(
-        ctx.full,
-        MAX_MEMO_SIZE,
-        "%s",
-        ctx.transaction.memo
-    );
-
-    if (strlen(ctx.full) > MAX_MEMO_SIZE) {
-        // :grimacing:
-        THROW(EXCEPTION_MALFORMED_APDU); 
-    }
-
-    hedera_sprintf(
-        ctx.title,
-        "Memo"
-    );
-}
-
-void x_reformat() {
-    switch (ctx.step) {
-        case Operator:
-            reformat_operator();
-            break;
-        case Senders:
-            reformat_senders();
-            break;
-        case Recipients:
-            reformat_recipients();
-            break;
-        case Amount:
-            reformat_amount();
-            break;
-        case Fee:
-            reformat_fee();
-            break;
-        case Memo:
-            reformat_memo();
-            break;
-    }
-    ux_layout_bnnn_paging_reset();
-}
-
-void x_step_prev() {
-    switch (ctx.step) {
-        case Operator:
-            ctx.step = Summary;
-            break;
-        case Senders:
-            ctx.step = Operator;
-            break;
-        case Recipients:
-            ctx.step = Senders;
-            break; 
-        case Amount:
-            if (ctx.type == Create) {
-                ctx.step = Operator;
-            } else {
-                ctx.step = Recipients;
-            }
-            break;
-        case Fee:
-            ctx.step = Amount;
-            break;
-        case Memo:
-            ctx.step = Fee;
-            break;
-        case Confirm:
-            if (ctx.type == Verify) {
-                ctx.step = Senders;
-            } else {
-                ctx.step = Memo;
-            }
-            break;
-        case Deny:
-            ctx.step = Confirm;
-            break;
-    }
-}
-
-void x_step_next() {
-    switch (ctx.step) {
-        case Unknown:
-            ctx.step = Summary;
-            break;
-        case Summary:
-            ctx.step = Operator;
-            break;
-        case Operator:
-            if (ctx.type == Create) {
-                ctx.step = Amount;
-            } else {
-                ctx.step = Senders;
-            }
-            break;
-        case Senders:
-            if (ctx.type == Verify) {
-                ctx.step = Confirm;
-            } else {
-                ctx.step = Recipients;
-            }
-            break;
-        case Recipients:
-            ctx.step = Amount;
-            break;
-        case Amount:
-            ctx.step = Fee;
-            break;
-        case Fee:
-            ctx.step = Memo;
-            break;
-        case Memo:
-            ctx.step = Confirm;
-            break;
-        case Confirm:
-            ctx.step = Deny;
-            break;
-    }
-}
-
-void x_start_tx_loop() {
-    if (ctx.step > Summary && ctx.step < Confirm) {
-        // On an intermediate step => from Right
-        x_step_prev();
-
-        if (ctx.step < Operator) {
-            // Step decreased beyond loop, exit
-            ux_flow_prev();
-            return;
-        }
-    } else {
-        // Entering Loop from Left
-        x_step_next();
-    }
-
-    ux_flow_next();
-}
-
-void x_continue_tx_loop() {
-    x_reformat();
-}
-
-void x_end_tx_loop() {
-    if (ctx.step > Summary && ctx.step < Confirm) {
-        // On an intermediate step => from Left
-        x_step_next();
-
-        if (ctx.step > Memo) {
-            // Step increased beyond loop, exit
-            ux_flow_next();
-            return;
-        }
-    } else {
-        // Returning to Loop from Right
-        x_step_prev();
-    }
-
-    ux_flow_prev();
-}
-
-UX_STEP_NOCB(
-    ux_tx_1_step,
-    bnn,
-    {
-        "Transaction Summary",
-        ctx.summary_line_1,
-        ctx.summary_line_2
-    }
-);
-
-UX_STEP_INIT(
-    ux_tx_pre_loop_step,
-    NULL,
-    NULL,
-    {
-        x_start_tx_loop();
-    }
-);
-
-UX_STEP_NOCB_INIT(
-    ux_tx_loop_step,
-    bnnn_paging,
-    {
-        x_continue_tx_loop();
-    },
-    {
-        .title = ctx.title,
-        .text = ctx.full
-    }
-);
-
-UX_STEP_INIT(
-    ux_tx_post_loop_step,
-    NULL,
-    NULL,
-    {
-        x_end_tx_loop();
-    }
-);
-
-UX_STEP_VALID(
-    ux_tx_3_step,
-    pb,
-    io_seproxyhal_tx_approve(NULL),
-    {
-        &C_icon_validate_14,
-        "Confirm"
-    }
-);
-
-UX_STEP_VALID(
-    ux_tx_4_step,
-    pb,
-    io_seproxyhal_tx_reject(NULL),
-    {
-        &C_icon_crossmark,
-        "Reject"
-    }
-);
-
-UX_DEF(
-    ux_tx_flow,
-    &ux_tx_1_step,
-    &ux_tx_pre_loop_step,
-    &ux_tx_loop_step,
-    &ux_tx_post_loop_step,
-    &ux_tx_3_step,
-    &ux_tx_4_step
-);
-
-#endif
-
 void handle_transaction_body() {
     os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
     os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
@@ -933,12 +601,248 @@ void handle_transaction_body() {
             THROW(EXCEPTION_MALFORMED_APDU);
     }
 
-#if defined(TARGET_NANOS)
     UX_DISPLAY(ui_tx_summary_step, NULL);
-#elif defined(TARGET_NANOX)
-    ux_flow_init(0, ux_tx_flow, NULL);
-#endif
 }
+
+#elif defined(TARGET_NANOX)
+
+static struct sign_tx_context_t {
+    // ui common
+    uint32_t key_index;
+    uint8_t transfer_to_index;
+
+    // Transaction Summary
+    char summary_line_1[DISPLAY_SIZE + 1];
+    char summary_line_2[DISPLAY_SIZE + 1];
+    char title[DISPLAY_SIZE + 1];
+    char partial[DISPLAY_SIZE + 1];
+    
+    uint8_t step;
+    bool verify;
+    
+    // Transaction Amount
+    char amount[DISPLAY_SIZE * 2 + 1];
+    
+    // Transaction Fee
+    char fee[DISPLAY_SIZE * 2 + 1];
+
+    // Transaction Memo
+    char memo[MAX_MEMO_SIZE + 1];
+
+    // Parsed transaction
+    HederaTransactionBody transaction;
+} ctx;
+
+// UI Definition for Nano X
+
+// Confirm Callback
+unsigned int io_seproxyhal_tx_approve(const bagl_element_t* e) {
+    io_exchange_with_code(EXCEPTION_OK, 64);
+    ui_idle();
+    return 0;
+}
+
+// Reject Callback
+unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e) {
+    io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
+    ui_idle();
+    return 0;
+}
+
+// Step 1: Summary
+UX_STEP_NOCB(
+    ux_tx_flow_1_step,
+    bnn,
+    {
+        "Transaction Summary",
+        ctx.summary_line_1,
+        ctx.summary_line_2
+    }
+);
+
+// Step 2: Amount
+UX_STEP_NOCB(
+    ux_tx_flow_2_step,
+    bnnn_paging,
+    {
+        .title = "Amount",
+        .text = (char*) ctx.amount
+    }
+);
+
+// Step 3: Fee
+UX_STEP_NOCB(
+    ux_tx_flow_3_step,
+    bnnn_paging,
+    {
+        .title = "Fee",
+        .text = (char*) ctx.fee
+    }
+);
+
+UX_STEP_NOCB(
+    ux_tx_flow_4_step,
+    bnnn_paging,
+    {
+        .title = "Memo",
+        .text = (char*) ctx.memo
+    }
+);
+
+// Step 5: Confirm
+UX_STEP_VALID(
+    ux_tx_flow_5_step,
+    pbb,
+    io_seproxyhal_tx_approve(NULL),
+    {
+        &C_icon_validate_14,
+        "Confirm"
+    }
+);
+
+// Step 6: Reject
+UX_STEP_VALID(
+    ux_tx_flow_6_step,
+    pbb,
+    io_seproxyhal_tx_reject(NULL),
+    {
+        &C_icon_crossmark,
+        "Reject"
+    }
+);
+
+// Transaction UX Flow
+UX_DEF(
+    ux_tx_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_2_step,
+    &ux_tx_flow_3_step,
+    &ux_tx_flow_4_step,
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_6_step
+);
+
+// Verify UX Flow
+UX_DEF(
+    ux_verify_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_6_step
+);
+
+void handle_transaction_body() {
+    os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
+    os_memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
+    os_memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
+
+    ctx.verify = false;
+
+    // <Do Action> 
+    // with Key #X?
+    hedera_snprintf(
+        ctx.summary_line_2,
+        DISPLAY_SIZE,
+        "with Key #%u?",
+        ctx.key_index
+    );
+
+    hedera_snprintf(
+        ctx.fee,
+        DISPLAY_SIZE * 2,
+        "%s hbar",
+        hedera_format_tinybar(ctx.transaction.transactionFee)
+    );
+
+    hedera_snprintf(
+        ctx.memo,
+        MAX_MEMO_SIZE,
+        "%s",
+        ctx.transaction.memo
+    );
+
+    // Handle parsed protobuf message of transaction body
+    switch (ctx.transaction.which_data) {
+        case HederaTransactionBody_cryptoCreateAccount_tag:
+            // Create Account Transaction
+            hedera_snprintf(
+                ctx.summary_line_1,
+                DISPLAY_SIZE,
+                "Create Account"
+            );
+            hedera_snprintf(
+                ctx.amount,
+                DISPLAY_SIZE * 2,
+                "%s hbar",
+                hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance)
+            );
+            break;
+
+        case HederaTransactionBody_cryptoTransfer_tag: {
+            // Transfer Transaction
+            if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count > 2) {
+                // Unsupported (number of accounts > 2)
+                THROW(EXCEPTION_MALFORMED_APDU);
+            }
+
+            if ( // Only 1 Account (Sender), Fee 1 Tinybar, and Value 0 Tinybar
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 && 
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
+                ctx.transaction.transactionFee == 1) {
+                    // Verify Account Transaction
+                    ctx.verify = true;
+                    hedera_snprintf(
+                        ctx.summary_line_1,
+                        DISPLAY_SIZE,
+                        "Verify %llu.%llu.%llu",
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.shardNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.realmNum,
+                        ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].accountID.accountNum
+                    );
+                    hedera_snprintf(
+                        ctx.amount,
+                        DISPLAY_SIZE * 2,
+                        "%s hbar",
+                        hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount)
+                    );
+
+            } else { // Number of Accounts == 2
+                // Some other Transfer Transaction
+                // Determine Sender based on amount
+                ctx.transfer_to_index = 1;
+                if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount > 0) {
+                    ctx.transfer_to_index = 0;
+                }
+                hedera_snprintf(
+                    ctx.summary_line_1,
+                    DISPLAY_SIZE,
+                    "Send to %llu.%llu.%llu",
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].accountID.accountNum
+                );
+                hedera_snprintf(
+                    ctx.amount,
+                    DISPLAY_SIZE * 2,
+                    "%s hbar",
+                    hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
+                );
+            }
+        } break;
+
+        default:
+            // Unsupported
+            THROW(EXCEPTION_MALFORMED_APDU);
+    }
+
+    if (ctx.verify) {
+        ux_flow_init(0, ux_verify_flow, NULL);
+    } else {
+        ux_flow_init(0, ux_tx_flow, NULL);
+    }
+}
+#endif
 
 // Sign Handler
 // Decodes and handles transaction message
