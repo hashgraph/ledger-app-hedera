@@ -571,7 +571,7 @@ void reformat_accounts(uint8_t transfer_index) {
 void reformat_senders() {
     hedera_sprintf(
         ctx.title,
-        "Sender",
+        "Sender"
     );
     reformat_accounts(ctx.transfer_from_index);
 }
@@ -705,6 +705,9 @@ void x_step_prev() {
 
 void x_step_next() {
     switch (ctx.step) {
+        case Unknown:
+            ctx.step = Summary;
+            break;
         case Summary:
             ctx.step = Operator;
             break;
@@ -790,13 +793,9 @@ UX_STEP_NOCB(
     }
 );
 
-UX_STEP_NOCB_INIT(
+UX_FLOW_CALL(
     ux_tx_pre_loop_step,
-    NULL,
-    NULL,
-    {
-        x_start_tx_loop();
-    }
+    x_start_tx_loop()
 );
 
 UX_STEP_NOCB_INIT(
@@ -811,16 +810,12 @@ UX_STEP_NOCB_INIT(
     }
 );
 
-UX_STEP_NOCB_INIT(
+UX_FLOW_CALL(
     ux_tx_post_loop_step,
-    NULL,
-    NULL,
-    {
-        x_end_tx_loop();
-    }
+    x_end_tx_loop()
 );
 
-UX_STEP_NOCB(
+UX_STEP_VALID(
     ux_tx_3_step,
     pb,
     io_seproxyhal_tx_approve(NULL),
@@ -830,7 +825,7 @@ UX_STEP_NOCB(
     }
 );
 
-UX_STEP_NOCB(
+UX_STEP_VALID(
     ux_tx_4_step,
     pb,
     io_seproxyhal_tx_reject(NULL),
