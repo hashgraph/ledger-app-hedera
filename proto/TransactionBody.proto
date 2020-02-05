@@ -6,6 +6,7 @@ import "CryptoCreateTransactionBody.proto";
 import "CryptoTransferTransactionBody.proto";
 
 message HederaTransactionBody {
+    HederaTransactionID transactionID = 1;
     uint64 transactionFee = 3;
     string memo = 6 [(nanopb).max_size = 100];
     oneof data {

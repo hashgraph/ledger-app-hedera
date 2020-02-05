@@ -6,6 +6,7 @@
 
 #define MAX_TX_SIZE 512
 #define FULL_ADDRESS_LENGTH 54
+#define ACCOUNT_ID_SIZE sizeof(uint64_t) * 8 * 3 + 2
 #define KEY_SIZE 64
 #define MAX_MEMO_SIZE 200
 #define SIGNATURE_SIZE 32
@@ -28,8 +29,6 @@
 // User IDs for BAGL Elements
 static const uint8_t LEFT_ICON_ID = 0x01;
 static const uint8_t RIGHT_ICON_ID = 0x02;
-static const uint8_t LEFT_ICON_ID_VERIFY = 0x03;
-static const uint8_t RIGHT_ICON_ID_VERIFY = 0x04;
 static const uint8_t LINE_1_ID = 0x05;
 static const uint8_t LINE_2_ID = 0x06;
 
