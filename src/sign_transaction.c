@@ -664,6 +664,7 @@ void x_reformat() {
             reformat_memo();
             break;
     }
+    ux_layout_bnnn_paging_reset();
 }
 
 void x_step_prev() {
@@ -793,9 +794,13 @@ UX_STEP_NOCB(
     }
 );
 
-UX_FLOW_CALL(
+UX_STEP_INIT(
     ux_tx_pre_loop_step,
-    x_start_tx_loop()
+    NULL,
+    NULL,
+    {
+        x_start_tx_loop();
+    }
 );
 
 UX_STEP_NOCB_INIT(
@@ -810,9 +815,13 @@ UX_STEP_NOCB_INIT(
     }
 );
 
-UX_FLOW_CALL(
+UX_STEP_INIT(
     ux_tx_post_loop_step,
-    x_end_tx_loop()
+    NULL,
+    NULL,
+    {
+        x_end_tx_loop();
+    }
 );
 
 UX_STEP_VALID(
