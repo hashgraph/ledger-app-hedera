@@ -693,6 +693,8 @@ void x_step_prev() {
         case Confirm:
             if (ctx.type == Verify) {
                 ctx.step = Senders;
+            } else {
+                ctx.step = Memo;
             }
             break;
         case Deny:
@@ -788,7 +790,7 @@ UX_STEP_NOCB(
     }
 );
 
-UX_STEP(
+UX_STEP_NOCB_INIT(
     ux_tx_pre_loop_step,
     NULL,
     NULL,
@@ -797,7 +799,7 @@ UX_STEP(
     }
 );
 
-UX_STEP_NOCB(
+UX_STEP_NOCB_INIT(
     ux_tx_loop_step,
     bnnn_paging,
     {
@@ -809,7 +811,7 @@ UX_STEP_NOCB(
     }
 );
 
-UX_STEP(
+UX_STEP_NOCB_INIT(
     ux_tx_post_loop_step,
     NULL,
     NULL,
