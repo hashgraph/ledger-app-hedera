@@ -4,18 +4,7 @@
 #include "io.h"
 #include "utils.h"
 #include "debug.h"
-
-#define CLA 0xE0
-
-// These are the offsets of various parts of a request APDU packet.
-// INS identifies the commands.
-// P1 and P2 are parameters to the command.
-#define OFFSET_CLA 0
-#define OFFSET_INS 1
-#define OFFSET_P1 2
-#define OFFSET_P2 3
-#define OFFSET_LC 4
-#define OFFSET_CDATA 5
+#include "globals.h"
 
 // This is the main loop that reads and writes APDUs. It receives request
 // APDUs from the computer, looks up the corresponding command handler, and
@@ -99,14 +88,7 @@ void app_main() {
                 THROW(EXCEPTION_IO_RESET);
             }
             CATCH_OTHER(e) {
-                // Convert the exception to a response code. All error codes
-                // start with 6, except for 0x9000, which is a special
-                // "success" code. Every APDU payload should end with such a
-                // code, even if no other data is sent.
-
-                // If the first byte is not a 6, mask it with 0x6800 to
-                // convert it to a proper error code.
-
+                // Convert exception to response code and add to APDU return
                 switch (e & 0xF000) {
                     case 0x6000:
                     case 0x9000:
@@ -122,7 +104,7 @@ void app_main() {
                 G_io_apdu_buffer[tx++] = sw & 0xff;
             }
             FINALLY {
-                // do nothing
+                // explicitly do nothing
             }
         }
         END_TRY;
@@ -185,7 +167,7 @@ __attribute__((section(".boot"))) int main() {
                 break;
             }
             FINALLY {
-                // do nothing
+                // explicitly do nothing
             }
         }
         END_TRY;

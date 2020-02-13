@@ -7,5 +7,6 @@
         ".clang-tidy": "yaml",
         "string_view": "c",
         "regex": "c"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false,
 }
