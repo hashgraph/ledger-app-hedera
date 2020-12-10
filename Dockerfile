@@ -1,4 +1,4 @@
-FROM ubuntu:19.10
+FROM ubuntu:latest
 
 LABEL description="Ledger Development Environment"
 LABEL author="LaunchBadge"
