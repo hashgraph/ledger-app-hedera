@@ -1,6 +1,8 @@
 #ifndef LEDGER_HEDERA_GLOBALS_H
 #define LEDGER_HEDERA_GLOBALS_H 1
 
+#include <stdint.h>
+
 #define BIP32_PATH 5
 #define DISPLAY_SIZE 18 // characters @ 11pt sys font
 
