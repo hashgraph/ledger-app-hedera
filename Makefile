@@ -130,7 +130,7 @@ CFLAGS   += -Og -Iproto
 CFLAGS   += -Ivendor/ledger-nanopb/
 
 # printf
-CFLAGS   += -Ivendor/printf/ -I/usr/include
+CFLAGS   += -Ivendor/printf/
 
 # enable color from inside a script
 CFLAGS   += -fcolor-diagnostics
