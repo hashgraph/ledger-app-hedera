@@ -5,7 +5,7 @@ future==0.18.2
 hidapi==0.7.99.post21
 idna==2.8
 ledgerblue==0.1.31
-Pillow==7.1.0
+Pillow==8.3.2
 protobuf==3.10.0
 pycryptodomex==3.9.4
 python-u2flib-host==3.0.3
