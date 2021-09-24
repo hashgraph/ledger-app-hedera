@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "printf.h"
 #include "hedera.h"
+#include "string.h"
 
 void hedera_derive_keypair(
     uint32_t index,
@@ -56,8 +57,8 @@ void hedera_derive_keypair(
         *secret = pk;
     }
 
-    os_memset(seed, 0, sizeof(seed));
-    os_memset(&pk, 0, sizeof(pk));
+    explicit_bzero(seed, sizeof(seed));
+    explicit_bzero(&pk, sizeof(pk));
 }
 
 void hedera_sign(
@@ -89,7 +90,7 @@ void hedera_sign(
     );
 
     // Clear private key
-    os_memset(&pk, 0, sizeof(pk));
+    explicit_bzero(&pk, sizeof(pk));
 }
 
 char* hedera_format_tinybar(uint64_t tinybar) {
@@ -98,7 +99,7 @@ char* hedera_format_tinybar(uint64_t tinybar) {
     static uint64_t hbar_f;
     static int cnt;
     
-    os_memset(buf, '\0', HBAR_BUF_SIZE);
+    memset(buf, '\0', HBAR_BUF_SIZE);
     cnt = 0;
     
     hbar = tinybar / HBAR;
