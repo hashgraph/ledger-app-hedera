@@ -1,9 +1,9 @@
 syntax = "proto3";
 
 import "nanopb.proto";
-import "BasicTypes.proto";
-import "CryptoCreateTransactionBody.proto";
-import "CryptoTransferTransactionBody.proto";
+import "proto/BasicTypes.proto";
+import "proto/CryptoCreateTransactionBody.proto";
+import "proto/CryptoTransferTransactionBody.proto";
 
 message HederaTransactionBody {
     HederaTransactionID transactionID = 1;
