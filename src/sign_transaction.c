@@ -379,8 +379,8 @@ void count_screens() {
 
 void shift_display() {
     // Slide window (partial) along full entity (full) by DISPLAY_SIZE chars
-    os_memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
-    os_memmove(
+    memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
+    memmove(
         ctx.partial,
         ctx.full + (DISPLAY_SIZE * (ctx.display_index - 1)),
         DISPLAY_SIZE
@@ -537,10 +537,10 @@ void reformat_memo() {
 }
 
 void handle_transaction_body() {
-    os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.full, '\0', ACCOUNT_ID_SIZE + 1);
-    os_memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.full, '\0', ACCOUNT_ID_SIZE + 1);
+    memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
 
     // Step 1, Unknown Type, Screen 1 of 1
     ctx.step = Summary;
@@ -791,16 +791,16 @@ UX_DEF(
 );
 
 void handle_transaction_body() {
-    os_memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.amount_title, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.senders_title, '\0', DISPLAY_SIZE + 1);
-    os_memset(ctx.operator, '\0', DISPLAY_SIZE * 2 + 1);
-    os_memset(ctx.senders, '\0', DISPLAY_SIZE * 2 + 1);
-    os_memset(ctx.recipients, '\0', DISPLAY_SIZE * 2 + 1);
-    os_memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
-    os_memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
-    os_memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
+    memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.amount_title, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.senders_title, '\0', DISPLAY_SIZE + 1);
+    memset(ctx.operator, '\0', DISPLAY_SIZE * 2 + 1);
+    memset(ctx.senders, '\0', DISPLAY_SIZE * 2 + 1);
+    memset(ctx.recipients, '\0', DISPLAY_SIZE * 2 + 1);
+    memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
+    memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
+    memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
 
     ctx.type = Unknown;
 
@@ -991,7 +991,7 @@ void handle_sign_transaction(
     }
 
     // copy raw transaction
-    os_memmove(raw_transaction, (buffer + 4), raw_transaction_length);
+    memmove(raw_transaction, (buffer + 4), raw_transaction_length);
 
     // Sign Transaction
     hedera_sign(

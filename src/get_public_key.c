@@ -55,7 +55,7 @@ static const bagl_element_t ui_get_public_key_approve[] = {
 };
 
 void shift_partial_key() {
-    os_memmove(
+    memmove(
         ctx.partial_key,
         ctx.full_key + ctx.display_index,
         DISPLAY_SIZE
@@ -101,7 +101,7 @@ static const bagl_element_t* ui_prepro_get_public_key_compare(
 
 void compare_pk() {
     // init partial key str from full str
-    os_memmove(ctx.partial_key, ctx.full_key, DISPLAY_SIZE);
+    memmove(ctx.partial_key, ctx.full_key, DISPLAY_SIZE);
     ctx.partial_key[DISPLAY_SIZE] = '\0';
     
     // init display index
