@@ -33,6 +33,5 @@ message HederaDuration {
 }
 
 message HederaTransactionID {
-    HederaTimestamp transactionValidStart = 1;
     HederaAccountID accountID = 2;
 }

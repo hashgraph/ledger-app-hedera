@@ -27,7 +27,7 @@ APP_LOAD_PARAMS= --curve ed25519 --path "44'/3030'" --appFlags 0x240 $(COMMON_LO
 
 APPVERSION_M = 1
 APPVERSION_N = 0
-APPVERSION_P = 0
+APPVERSION_P = 3
 APPVERSION = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = Hedera
 
@@ -49,7 +49,7 @@ endif
 # ifeq ($(TARGET_NAME), TARGET_NANOX)
 # all: proto default
 # else
-all: proto default
+all: default
 #endif
 
 ############
@@ -127,7 +127,7 @@ CC       := $(CLANGPATH)clang
 CFLAGS   += -Og -Iproto
 
 # nanopb
-CFLAGS   += -Ivendor/ledger-nanopb/
+CFLAGS   += -I. 
 
 # printf
 CFLAGS   += -Ivendor/printf/
@@ -154,6 +154,35 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
+include vendor/nanopb/extra/nanopb.mk
+
+DEFINES   += PB_NO_ERRMSG=1
+SOURCE_FILES += $(NANOPB_CORE)
+CFLAGS += "-I$(NANOPB_DIR)"
+
+# Build rule for proto files
+SOURCE_FILES += proto/BasicTypes.pb.c 
+SOURCE_FILES += proto/CryptoCreateTransactionBody.pb.c 
+SOURCE_FILES += proto/CryptoTransferTransactionBody.pb.c 
+SOURCE_FILES += proto/TransactionBody.pb.c 
+
+proto/BasicTypes.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/BasicTypes.proto
+
+proto/CryptoCreateTransactionBody.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoCreateTransactionBody.proto
+
+proto/CryptoTransferTransactionBody.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoTransferTransactionBody.proto
+
+proto/TransactionBody.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TransactionBody.proto
+
+# target to also clean generated proto c files
+.SILENT : cleanall
+cleanall : clean
+	-@rm -rf proto/*.pb.c proto/*.pb.h
+
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 
@@ -170,7 +199,7 @@ include $(BOLOS_SDK)/Makefile.rules
 dep/%.d: %.c Makefile
 
 listvariants:
-	@echo VARIANTS COIN nanopb
+	@echo VARIANTS COIN hedera
 
 check:
 	@ clang-tidy \
@@ -179,17 +208,3 @@ check:
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))
 
-vendor/ledger-nanopb/generator/proto/nanopb_pb2.py:
-	@ make -C vendor/ledger-nanopb/generator/proto
-
-# TODO: Figure out a way to do this without copying .c files
-.PHONY: proto
-proto: vendor/ledger-nanopb/generator/proto/nanopb_pb2.py
-	@ protoc \
-		--plugin=protoc-gen-nanopb=vendor/ledger-nanopb/generator/protoc-gen-nanopb \
-		--nanopb_out=proto/ \
-		-I=proto/ \
-		-I=vendor/ledger-nanopb/generator/proto \
-		proto/*.proto
-
-	@ cp vendor/ledger-nanopb/*.c src/
