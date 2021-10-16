@@ -227,7 +227,6 @@ void handle_get_public_key(
         /* out */ volatile unsigned int* flags,
         /* out */ volatile unsigned int* tx
 ) {
-    UNUSED(p1);
     UNUSED(p2);
     UNUSED(len);
     UNUSED(tx);
@@ -235,19 +234,26 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
-    // Complete "Export Public | Key #x?"
-    hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
+    // p1 > 0 for silent mode
+    if (p1 > 0) {
+        // Complete "Export Public | Key #x?"
+        hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
+    }
 
     // Populate context with PK
     get_pk();
 
 #if defined(TARGET_NANOS)
 
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
+    if (p1 > 0) {
+        UX_DISPLAY(ui_get_public_key_approve, NULL);
+    }
 
 #elif defined(TARGET_NANOX)
 
-    ux_flow_init(0, ux_approve_pk_flow, NULL);
+    if (p1 > 0) {
+        ux_flow_init(0, ux_approve_pk_flow, NULL);
+    }
 
 #endif // TARGET
 
