@@ -1,4 +1,5 @@
 #include "os.h"
+#include "ux.h"
 #include "os_io_seproxyhal.h"
 #include "debug.h"
 
@@ -44,7 +45,7 @@ unsigned char io_event(unsigned char channel) {
         case SEPROXYHAL_TAG_TICKER_EVENT:
             UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer, {});
             break;
-            
+
         default:
             UX_DEFAULT_EVENT();
             break;
