@@ -532,7 +532,7 @@ static bool checkreturn decode_static_field(pb_istream_t *stream, pb_wire_type_t
                 /* Set default values for the submessage fields. */
                 if (field->submsg_desc->default_value != NULL ||
                     field->submsg_desc->field_callback != NULL ||
-                    field->submsg_desc->submsg_info[0] != NULL)
+                    ((const pb_msgdesc_t * const *)PIC(field->submsg_desc->submsg_info))[0] != NULL)
                 {
                     pb_field_iter_t submsg_iter;
                     if (pb_field_iter_begin(&submsg_iter, field->submsg_desc, field->pData))
