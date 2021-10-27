@@ -16,9 +16,9 @@ void hedera_derive_keypair(
 
     path[0] = 44 | 0x80000000;
     path[1] = 3030 | 0x80000000;
-    path[2] = index | 0x80000000;
+    path[2] = 0x80000000;
     path[3] = 0x80000000;
-    path[4] = 0x80000000;
+    path[4] = index | 0x80000000;
 
     os_perso_derive_node_bip32_seed_key(
         HDW_ED25519_SLIP10, 
