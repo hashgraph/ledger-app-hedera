@@ -264,7 +264,5 @@ void handle_get_public_key(
         ui_idle();
     }
 
-    if (p1 == 0) {
-        *flags |= IO_ASYNCH_REPLY;
-    }
+    *flags |= IO_ASYNCH_REPLY;
 }
