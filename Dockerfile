@@ -1,4 +1,4 @@
-FROM ubuntu:19.10
+FROM ubuntu:18.04
 
 LABEL description="Ledger Development Environment"
 LABEL author="LaunchBadge"
@@ -19,7 +19,10 @@ RUN apt-get update && \
                        libtinfo5 \
                        clang-tidy \
                        clang-format \
-                       protobuf-compiler
+                       protobuf-compiler \
+                       zlib1g-dev \
+                       libjpeg-dev \
+                       gcc-arm-none-eabi
 
 RUN mkdir -p /opt/ledger/env
 
