@@ -234,34 +234,21 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
-    // p1 > 0 for silent mode
-    if (p1 > 0) {
-        // Complete "Export Public | Key #x?"
-        hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
-    }
+    // Complete "Export Public | Key #x?"
+    hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
 
     // Populate context with PK
     get_pk();
 
 #if defined(TARGET_NANOS)
 
-    if (p1 > 0) {
-        UX_DISPLAY(ui_get_public_key_approve, NULL);
-    }
+    UX_DISPLAY(ui_get_public_key_approve, NULL);
 
 #elif defined(TARGET_NANOX)
 
-    if (p1 > 0) {
-        ux_flow_init(0, ux_approve_pk_flow, NULL);
-    }
+    ux_flow_init(0, ux_approve_pk_flow, NULL);
 
 #endif // TARGET
-
-    // Normally happens in approve export public key handler
-    if (p1 > 0) {
-        io_exchange_with_code(EXCEPTION_OK, 32);
-        ui_idle();
-    }
 
     *flags |= IO_ASYNCH_REPLY;
 }
