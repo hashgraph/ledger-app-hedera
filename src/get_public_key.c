@@ -230,25 +230,36 @@ void handle_get_public_key(
     UNUSED(p2);
     UNUSED(len);
     UNUSED(tx);
+    
+    // P1 Value != 0x00 --> Silent Mode
 
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
-    // Complete "Export Public | Key #x?"
-    hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
+    if (p1 == 0x00) {
+        // Complete "Export Public | Key #x?"
+        hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
+    }
 
     // Populate context with PK
     get_pk();
 
+    if (p1 == 0x00) {
 #if defined(TARGET_NANOS)
 
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
+        UX_DISPLAY(ui_get_public_key_approve, NULL);
 
 #elif defined(TARGET_NANOX)
 
-    ux_flow_init(0, ux_approve_pk_flow, NULL);
+        ux_flow_init(0, ux_approve_pk_flow, NULL);
 
 #endif // TARGET
+    }
+
+    // Normally fired by touch_ok
+    if (p1 != 0x00) {
+        io_exchange_with_code(EXCEPTION_OK, 32);
+    }
 
     *flags |= IO_ASYNCH_REPLY;
 }
