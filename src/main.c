@@ -143,18 +143,21 @@ __attribute__((section(".boot"))) int main() {
                 // the Ledger SDK
                 io_seproxyhal_init();
 
-                // Power Cycle (I think?)
+#ifdef TARGET_NANOX
+                // grab the current plane mode setting
+                G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
+#endif // TARGET_NANOX
+
+#ifdef HAVE_BLE
+                BLE_power(0, NULL);
+                BLE_power(1, "Nano X");
+#endif // HAVE_BLE
+
                 USB_power(0);
                 USB_power(1);
 
                 // Shows the main menu
                 ui_idle();
-
-                // Nano X (but not Blue, lol) has Bluetooth
-#ifdef HAVE_BLE
-                BLE_power(0, NULL);
-                BLE_power(1, "Nano X");
-#endif // HAVE_BLE
 
                 // Actual Main Loop
                 app_main();
