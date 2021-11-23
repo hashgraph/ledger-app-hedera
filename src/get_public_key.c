@@ -234,8 +234,9 @@ void handle_get_public_key(
     // Read Key Index
     ctx.key_index = U4LE(buffer, 0);
 
-    // p1 > 0 for silent mode
-    if (p1 > 0) {
+    // If p1 != 0, silent mode, for use by apps that request the user's public key frequently
+    // Only do UI actions for p1 == 0
+    if (p1 == 0) {
         // Complete "Export Public | Key #x?"
         hedera_snprintf(ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", ctx.key_index);
     }
@@ -245,20 +246,24 @@ void handle_get_public_key(
 
 #if defined(TARGET_NANOS)
 
-    if (p1 > 0) {
+    if (p1 == 0) {
         UX_DISPLAY(ui_get_public_key_approve, NULL);
     }
 
 #elif defined(TARGET_NANOX)
 
-    if (p1 > 0) {
+    if (p1 == 0) {
         ux_flow_init(0, ux_approve_pk_flow, NULL);
     }
 
 #endif // TARGET
 
     // Normally happens in approve export public key handler
+<<<<<<< HEAD
     if (p1 > 0) {
+=======
+    if (p1 != 0) {
+>>>>>>> fix-silent-pk
         io_exchange_with_code(EXCEPTION_OK, 32);
         ui_idle();
     }
