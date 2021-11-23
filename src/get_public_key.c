@@ -259,11 +259,7 @@ void handle_get_public_key(
 #endif // TARGET
 
     // Normally happens in approve export public key handler
-<<<<<<< HEAD
-    if (p1 > 0) {
-=======
     if (p1 != 0) {
->>>>>>> fix-silent-pk
         io_exchange_with_code(EXCEPTION_OK, 32);
         ui_idle();
     }
