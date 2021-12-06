@@ -1,6 +1,0 @@
-[submodule "vendor/blue-secure-sdk"]
-	path = vendor/blue-secure-sdk
-	url = https://github.com/LedgerHQ/blue-secure-sdk
-[submodule "vendor/nanos-secure-sdk"]
-	path = vendor/nanos-secure-sdk
-        url = https://github.com/LedgerHQ/nanos-secure-sdk
