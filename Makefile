@@ -154,7 +154,7 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
 
-# include vendor/nanopb/extra/nanopb.mk
+include vendor/nanopb/extra/nanopb.mk
 
 DEFINES   += PB_NO_ERRMSG=1
 SOURCE_FILES += $(NANOPB_CORE)
