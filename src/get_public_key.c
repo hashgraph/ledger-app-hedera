@@ -257,11 +257,5 @@ void handle_get_public_key(
 
 #endif // TARGET
 
-    // Normally happens in approve export public key handler
-    if (p1 != 0) {
-        io_exchange_with_code(EXCEPTION_OK, 32);
-        ui_idle();
-    }
-
     *flags |= IO_ASYNCH_REPLY;
 }
