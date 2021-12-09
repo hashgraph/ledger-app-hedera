@@ -130,7 +130,7 @@ CFLAGS   += -Og -Iproto
 CFLAGS   += -I. 
 
 # printf
-CFLAGS   += -Ivendor/printf/
+# CFLAGS   += -Ivendor/printf/
 
 # enable color from inside a script
 CFLAGS   += -fcolor-diagnostics
