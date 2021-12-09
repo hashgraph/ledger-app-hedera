@@ -502,7 +502,7 @@ void reformat_fee() {
     hedera_snprintf(
         ctx.title,
         DISPLAY_SIZE,
-        "Fee (%u/%u)",
+        "Max Fee (%u/%u)",
         ctx.display_index,
         ctx.display_count
     );
@@ -721,7 +721,7 @@ UX_STEP_NOCB(
     ux_tx_flow_6_step,
     bnnn_paging,
     {
-        .title = "Fee",
+        .title = "Max Fee",
         .text = (char*) ctx.fee
     }
 );
