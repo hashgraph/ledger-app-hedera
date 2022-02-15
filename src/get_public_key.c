@@ -115,7 +115,7 @@ void compare_pk() {
 }
 
 static unsigned int ui_get_public_key_approve_button(
-    unsigned int button_mask, 
+    unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
     UNUSED(button_mask_counter);
@@ -137,7 +137,7 @@ static unsigned int ui_get_public_key_approve_button(
     return 0;
 }
 
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e) {
     io_exchange_with_code(EXCEPTION_OK, 32);
     compare_pk();
@@ -250,7 +250,7 @@ void handle_get_public_key(
         UX_DISPLAY(ui_get_public_key_approve, NULL);
     }
 
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
     if (p1 == 0) {
         ux_flow_init(0, ux_approve_pk_flow, NULL);

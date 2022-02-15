@@ -616,7 +616,7 @@ void handle_transaction_body() {
     UX_DISPLAY(ui_tx_summary_step, NULL);
 }
 
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 static struct sign_tx_context_t {
     // ui common
@@ -630,9 +630,9 @@ static struct sign_tx_context_t {
     char senders_title[DISPLAY_SIZE + 1];
     char amount_title[DISPLAY_SIZE + 1];
     char partial[DISPLAY_SIZE + 1];
-    
+
     enum TransactionType type;
-    
+
     // Transaction Operator
     char operator[DISPLAY_SIZE * 2 + 1];
 

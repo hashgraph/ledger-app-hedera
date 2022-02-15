@@ -32,7 +32,7 @@ unsigned int ui_tx_summary_step_button(
 void handle_intermediate_left_press();
 void handle_intermediate_right_press();
 unsigned int ui_tx_intermediate_step_button(
-    unsigned int button_mask, 
+    unsigned int button_mask,
     unsigned int button_mask_counter
 );
 
@@ -54,7 +54,7 @@ void shift_display();
 bool first_screen();
 bool last_screen();
 
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 // Forward declarations for Nano X UI
 void x_start_tx_loop();
 void x_continue_tx_loop();

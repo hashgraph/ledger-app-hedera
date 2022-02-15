@@ -72,7 +72,7 @@ static const ux_menu_entry_t menu_main[4] = {
 
     UX_MENU_END
 };
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
@@ -117,7 +117,7 @@ UX_DEF(
 void ui_idle(void) {
 #if defined(TARGET_NANOS)
     UX_MENU_DISPLAY(0, menu_main, NULL);
-#elif defined(TARGET_NANOX)
+#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     if (G_ux.stack_count == 0) {
         ux_stack_push();
     }
