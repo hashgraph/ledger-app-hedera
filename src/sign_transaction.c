@@ -1024,12 +1024,15 @@ void handle_sign_transaction(
     memmove(raw_transaction, (buffer + 4), raw_transaction_length);
 
     // Sign Transaction
-    hedera_sign(
+    // TODO: handle error return here (internal error?!)
+    if (!hedera_sign(
         ctx.key_index,
         raw_transaction,
         raw_transaction_length,
         G_io_apdu_buffer
-    );
+    )) {
+        THROW(EXCEPTION_INTERNAL);
+    }
 
     // Make in memory buffer into stream
     pb_istream_t stream = pb_istream_from_buffer(
