@@ -6,5 +6,5 @@ import "proto/BasicTypes.proto";
 message HederaTokenAssociateTransactionBody {
     HederaAccountID account = 1;
 
-    repeated HederaTokenID tokens = 2;
+    repeated HederaTokenID tokens = 2 [(nanopb).max_count = 1];
 }
