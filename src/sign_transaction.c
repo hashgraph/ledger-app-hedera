@@ -103,7 +103,7 @@ static const bagl_element_t ui_tx_deny_step[] = {
 // Step 1: Transaction Summary
 unsigned int ui_tx_summary_step_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
+    unsigned int __attribute__ ((unused)) button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
@@ -137,6 +137,7 @@ void handle_intermediate_left_press() {
                 UX_REDISPLAY();
             }
         } break;
+
         case Senders: {
             if (first_screen()) {  // Return to Operator
                 if (ctx.type == Verify) {
@@ -154,6 +155,7 @@ void handle_intermediate_left_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Recipients: {
             if (first_screen()) {  // Return to Senders
                 ctx.step = Senders;
@@ -165,6 +167,7 @@ void handle_intermediate_left_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Amount: {
             if (first_screen()) {
                 if (ctx.type == Create) {  // Return to Operator
@@ -182,6 +185,7 @@ void handle_intermediate_left_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Fee: {
             if (first_screen()) {  // Return to Amount
                 ctx.step = Amount;
@@ -193,6 +197,7 @@ void handle_intermediate_left_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Memo: {
             if (first_screen()) {  // Return to Fee
                 ctx.step = Fee;
@@ -204,6 +209,12 @@ void handle_intermediate_left_press() {
             }
             UX_REDISPLAY();
         } break;
+
+        case Summary:
+        case Confirm:
+        case Deny:
+            // ignore left button on Summary, Confirm, and Deny screens
+            break;
     }
 }
 
@@ -227,6 +238,7 @@ void handle_intermediate_right_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Senders: {
             if (last_screen()) {
                 if (ctx.type == Verify) {  // Continue to Confirm
@@ -243,6 +255,7 @@ void handle_intermediate_right_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Recipients: {
             if (last_screen()) {  // Continue to Amount
                 ctx.step = Amount;
@@ -254,6 +267,7 @@ void handle_intermediate_right_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Amount: {
             if (last_screen()) {  // Continue to Fee
                 ctx.step = Fee;
@@ -265,6 +279,7 @@ void handle_intermediate_right_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Fee: {
             if (last_screen()) {  // Continue to Memo
                 ctx.step = Memo;
@@ -276,6 +291,7 @@ void handle_intermediate_right_press() {
             }
             UX_REDISPLAY();
         } break;
+
         case Memo: {
             if (last_screen()) {  // Continue to Confirm
                 ctx.step = Confirm;
@@ -287,13 +303,19 @@ void handle_intermediate_right_press() {
                 UX_REDISPLAY();
             }
         } break;
+
+        case Summary:
+        case Confirm:
+        case Deny:
+            // ignore left button on Summary, Confirm, and Deny screens
+            break;
     }
 }
 
 // Step 2 - 7: Operator, Senders, Recipients, Amount, Fee, Memo
 unsigned int ui_tx_intermediate_step_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
+    unsigned int __attribute__ ((unused)) button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
@@ -314,7 +336,7 @@ unsigned int ui_tx_intermediate_step_button(
 
 unsigned int ui_tx_confirm_step_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
+    unsigned int __attribute__ ((unused)) button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
@@ -346,7 +368,7 @@ unsigned int ui_tx_confirm_step_button(
 
 unsigned int ui_tx_deny_step_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
+    unsigned int __attribute__ ((unused)) button_mask_counter
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
@@ -464,7 +486,9 @@ void reformat_amount() {
                 "%s hbar",
                 hedera_format_tinybar(ctx.transaction.data.cryptoCreateAccount.initialBalance)
             );
+
             break;
+
         case Transfer:
             hedera_snprintf(
                 ctx.full,
@@ -472,7 +496,13 @@ void reformat_amount() {
                 "%s hbar",
                 hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
             );
+
             break;
+
+        case Unknown:
+        case Verify:
+            // no amount to format on Unknown and Verify screens
+            return;
     }
 
     count_screens();
