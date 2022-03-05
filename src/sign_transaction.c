@@ -401,7 +401,7 @@ void count_screens() {
 
 void shift_display() {
     // Slide window (partial) along full entity (full) by DISPLAY_SIZE chars
-    memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.partial, DISPLAY_SIZE + 1);
     memmove(
         ctx.partial,
         ctx.full + (DISPLAY_SIZE * (ctx.display_index - 1)),
@@ -567,10 +567,10 @@ void reformat_memo() {
 }
 
 void handle_transaction_body() {
-    memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.full, '\0', ACCOUNT_ID_SIZE + 1);
-    memset(ctx.partial, '\0', DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.summary_line_1, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.summary_line_2, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.full, ACCOUNT_ID_SIZE + 1);
+    explicit_bzero(ctx.partial, DISPLAY_SIZE + 1);
 
     // Step 1, Unknown Type, Screen 1 of 1
     ctx.step = Summary;
@@ -821,16 +821,16 @@ UX_DEF(
 );
 
 void handle_transaction_body() {
-    memset(ctx.summary_line_1, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.summary_line_2, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.amount_title, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.senders_title, '\0', DISPLAY_SIZE + 1);
-    memset(ctx.operator, '\0', DISPLAY_SIZE * 2 + 1);
-    memset(ctx.senders, '\0', DISPLAY_SIZE * 2 + 1);
-    memset(ctx.recipients, '\0', DISPLAY_SIZE * 2 + 1);
-    memset(ctx.fee, '\0', DISPLAY_SIZE * 2 + 1);
-    memset(ctx.amount, '\0', DISPLAY_SIZE * 2 + 1);
-    memset(ctx.memo, '\0', MAX_MEMO_SIZE + 1);
+    explicit_bzero(ctx.summary_line_1, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.summary_line_2, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.amount_title, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.senders_title, DISPLAY_SIZE + 1);
+    explicit_bzero(ctx.operator, DISPLAY_SIZE * 2 + 1);
+    explicit_bzero(ctx.senders, DISPLAY_SIZE * 2 + 1);
+    explicit_bzero(ctx.recipients, DISPLAY_SIZE * 2 + 1);
+    explicit_bzero(ctx.fee, DISPLAY_SIZE * 2 + 1);
+    explicit_bzero(ctx.amount, DISPLAY_SIZE * 2 + 1);
+    explicit_bzero(ctx.memo, MAX_MEMO_SIZE + 1);
 
     ctx.type = Unknown;
 
