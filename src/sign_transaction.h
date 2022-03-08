@@ -19,7 +19,9 @@ enum TransactionType {
     Create = 1,
     Transfer = 2,
     Associate = 3,
-    TokenTransfer = 4
+    TokenTransfer = 4,
+    TokenMint = 5,
+    TokenBurn = 6,
 };
 
 #if defined(TARGET_NANOS)

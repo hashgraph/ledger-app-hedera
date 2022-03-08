@@ -107,7 +107,7 @@ unsigned int ui_tx_summary_step_button(
 ) {
     switch(button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
-            if (ctx.type == Verify || ctx.type == Associate) {
+            if (ctx.type == Verify || ctx.type == Associate || ctx.type == TokenMint || ctx.type == TokenBurn) {
                 ctx.step = Senders;
                 ctx.display_index = 1;
                 reformat_senders();
@@ -140,7 +140,7 @@ void handle_intermediate_left_press() {
 
         case Senders: {
             if (first_screen()) {  // Return to Operator
-                if (ctx.type == Verify || ctx.type == Associate) {
+                if (ctx.type == Verify || ctx.type == Associate || ctx.type == TokenMint || ctx.type == TokenBurn) {
                     ctx.step = Summary;
                     ctx.display_index = 1;
                     UX_DISPLAY(ui_tx_summary_step, NULL);
@@ -178,6 +178,10 @@ void handle_intermediate_left_press() {
                     ctx.step = Recipients;
                     ctx.display_index = 1;
                     reformat_recipients();
+                } else if (ctx.type == TokenMint || ctx.type == TokenBurn) { // Return to Senders
+                    ctx.step = Senders;
+                    ctx.display_index = 1;
+                    reformat_senders();
                 }
             } else {  // Scroll left
                 ctx.display_index--;
@@ -244,6 +248,10 @@ void handle_intermediate_right_press() {
                 if (ctx.type == Verify || ctx.type == Associate) {  // Continue to Confirm
                     ctx.step = Confirm;
                     UX_DISPLAY(ui_tx_confirm_step, NULL);
+                } else if (ctx.type == TokenMint || ctx.type == TokenBurn) {
+                    ctx.step = Amount;
+                    ctx.display_index = 1;
+                    reformat_amount();
                 } else {  // Continue to Recipients
                     ctx.step = Recipients;
                     ctx.display_index = 1;
@@ -269,10 +277,18 @@ void handle_intermediate_right_press() {
         } break;
 
         case Amount: {
-            if (last_screen()) {  // Continue to Fee
-                ctx.step = Fee;
-                ctx.display_index = 1;
-                reformat_fee();
+            if (last_screen()) {
+                if (ctx.type == TokenMint || ctx.type == TokenBurn) {
+                    // Continue to Confirm
+                    ctx.step = Confirm;
+                    ctx.display_index = 1;
+                    UX_DISPLAY(ui_tx_confirm_step, NULL);
+                } else {
+                    // Continue to Fee
+                    ctx.step = Fee;
+                    ctx.display_index = 1;
+                    reformat_fee();
+                }
             } else {  // Scroll Right
                 ctx.display_index++;
                 reformat_amount();
@@ -344,6 +360,10 @@ unsigned int ui_tx_confirm_step_button(
                 ctx.step = Senders;
                 ctx.display_index = 1;
                 reformat_senders();
+            } else if (ctx.type == TokenMint || ctx.type == TokenBurn) { // Return to Amount
+                ctx.step = Amount;
+                ctx.display_index = 1;
+                reformat_amount();
             } else { // Return to Memo
                 ctx.step = Memo;
                 ctx.display_index = 1;
@@ -468,14 +488,46 @@ void reformat_accounts(char* title_part, uint8_t transfer_index) {
 }
 
 void reformat_token() {
-    hedera_snprintf(
-        ctx.full,
-        ACCOUNT_ID_SIZE,
-        "%llu.%llu.%llu",
-        ctx.transaction.data.tokenAssociate.tokens[0].shardNum,
-        ctx.transaction.data.tokenAssociate.tokens[0].realmNum,
-        ctx.transaction.data.tokenAssociate.tokens[0].tokenNum
-    );
+    switch (ctx.type) {
+        case Associate:
+            hedera_snprintf(
+                ctx.full,
+                ACCOUNT_ID_SIZE,
+                "%llu.%llu.%llu",
+                ctx.transaction.data.tokenAssociate.tokens[0].shardNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].realmNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].tokenNum
+            );
+
+            break;
+
+        case TokenMint:
+            hedera_snprintf(
+                ctx.full,
+                ACCOUNT_ID_SIZE,
+                "%llu.%llu.%llu",
+                ctx.transaction.data.tokenMint.token.shardNum,
+                ctx.transaction.data.tokenMint.token.realmNum,
+                ctx.transaction.data.tokenMint.token.tokenNum
+            );
+
+            break;
+
+        case TokenBurn:
+            hedera_snprintf(
+                ctx.full,
+                ACCOUNT_ID_SIZE,
+                "%llu.%llu.%llu",
+                ctx.transaction.data.tokenBurn.token.shardNum,
+                ctx.transaction.data.tokenBurn.token.realmNum,
+                ctx.transaction.data.tokenBurn.token.tokenNum
+            );
+
+            break;
+
+        default:
+            return;
+    }
 
     count_screens();
 
@@ -517,6 +569,8 @@ void reformat_senders() {
             break;
 
         case Associate:
+        case TokenMint:
+        case TokenBurn:
             reformat_token();
             break;
 
@@ -570,6 +624,32 @@ void reformat_amount() {
                 DISPLAY_SIZE * 3,
                 "%s hbar",
                 hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[ctx.transfer_to_index].amount)
+            );
+
+            break;
+
+        case TokenMint:
+            hedera_snprintf(
+                ctx.full,
+                DISPLAY_SIZE * 3,
+                "%s",
+                hedera_format_amount(
+                    ctx.transaction.data.tokenMint.amount,
+                    ctx.transaction.data.tokenMint.expected_decimals.value
+                )
+            );
+
+            break;
+
+        case TokenBurn:
+            hedera_snprintf(
+                ctx.full,
+                DISPLAY_SIZE * 3,
+                "%s",
+                hedera_format_amount(
+                    ctx.transaction.data.tokenBurn.amount,
+                    ctx.transaction.data.tokenBurn.expected_decimals.value
+                )
             );
 
             break;
@@ -692,6 +772,26 @@ void handle_transaction_body() {
                 ctx.summary_line_1,
                 DISPLAY_SIZE,
                 "Associate Token"
+            );
+
+            break;
+
+        case HederaTransactionBody_tokenMint_tag:
+            ctx.type = TokenMint;
+            hedera_snprintf(
+                ctx.summary_line_1,
+                DISPLAY_SIZE,
+                "Mint Token"
+            );
+
+            break;
+
+        case HederaTransactionBody_tokenBurn_tag:
+            ctx.type = TokenBurn;
+            hedera_snprintf(
+                ctx.summary_line_1,
+                DISPLAY_SIZE,
+                "Burn Token"
             );
 
             break;
