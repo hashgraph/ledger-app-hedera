@@ -5,7 +5,7 @@
 #include "hedera.h"
 #include "string.h"
 
-void hedera_derive_keypair(
+bool hedera_derive_keypair(
     uint32_t index,
     /* out */ cx_ecfp_private_key_t* secret, 
     /* out */ cx_ecfp_public_key_t* public
@@ -31,26 +31,33 @@ void hedera_derive_keypair(
         0
     );
 
-    cx_ecfp_init_private_key(
+    if (CX_OK != cx_ecfp_init_private_key_no_throw(
         CX_CURVE_Ed25519, 
         seed, 
         sizeof(seed), 
         &pk
-    );
+    )) {
+        return false;
+    }
 
     if (public) {
-        cx_ecfp_init_public_key(
+        if (CX_OK != cx_ecfp_init_public_key_no_throw(
             CX_CURVE_Ed25519, 
             NULL, 
             0, 
             public
-        );
-        cx_ecfp_generate_pair(
+        )) {
+            return false;
+        }
+
+        if (CX_OK != cx_ecfp_generate_pair_no_throw(
             CX_CURVE_Ed25519, 
             public, 
             &pk, 
             1
-        );
+        )) {
+            return false;
+        }
     }
 
     if (secret) {
@@ -59,9 +66,11 @@ void hedera_derive_keypair(
 
     explicit_bzero(seed, sizeof(seed));
     explicit_bzero(&pk, sizeof(pk));
+
+    return true;
 }
 
-void hedera_sign(
+bool hedera_sign(
     uint32_t index,
     const uint8_t* tx,
     uint8_t tx_len,
@@ -70,47 +79,71 @@ void hedera_sign(
     static cx_ecfp_private_key_t pk;
 
     // Get Keys
-    hedera_derive_keypair(index, &pk, NULL);
+    if (!hedera_derive_keypair(index, &pk, NULL)) {
+        return false;
+    }
 
     // Sign Transaction
     // <cx.h> 2283
     // Claims to want Hashes, but other apps use the message itself
     // and complain that the documentation is wrong
-    cx_eddsa_sign(
+    if (CX_OK != cx_eddsa_sign_no_throw(
         &pk,                             // private key
-        0,                               // mode (UNSUPPORTED)
         CX_SHA512,                       // hashID
         tx,                              // hash (really message)
         tx_len,                          // hash length (really message length)
-        NULL,                            // context (UNUSED)
-        0,                               // context length (0)
         result,                          // signature
-        64,                              // signature length
-        NULL                             // info
-    );
+        64                               // signature length
+    )) {
+        return false;
+    }
 
     // Clear private key
     explicit_bzero(&pk, sizeof(pk));
+
+    return true;
 }
 
 char* hedera_format_tinybar(uint64_t tinybar) {
-    static char buf[HBAR_BUF_SIZE];
-    static uint64_t hbar;
-    static uint64_t hbar_f;
-    static int cnt;
-    
-    memset(buf, '\0', HBAR_BUF_SIZE);
-    cnt = 0;
-    
-    hbar = tinybar / HBAR;
-    hbar_f = tinybar % HBAR; 
+    return hedera_format_amount(tinybar, 8);
+}
 
-    cnt = hedera_snprintf(buf, HBAR_BUF_SIZE, "%llu", hbar);
+char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
+    static const int BUF_SIZE = 32;
+    static char buf[BUF_SIZE];
 
-    if (hbar_f != 0) {
-        cnt += hedera_snprintf(buf + cnt, HBAR_BUF_SIZE - cnt, ".%.8llu", hbar_f);
+    explicit_bzero(buf, BUF_SIZE);
+
+    int i = 0;
+
+    while (i < (BUF_SIZE - 1) && (amount > 0 || i < decimals)) {
+        int digit = amount % 10;
+        amount /= 10;
+
+        buf[i++] = '0' + digit;
+
+        if (i == decimals) {
+            buf[i++] = '.';
+        }
     }
 
-    buf[cnt] = '\0';
+    if (buf[i - 1] == '.') {
+        buf[i++] = '0';
+    }
+
+    int j = 0;
+    char tmp;
+
+    while (j < i) {
+        j += 1;
+        i -= 1;
+
+        tmp = buf[j];
+        buf[j] = buf[i];
+        buf[i] = tmp;
+    }
+
     return buf;
 }
+
+

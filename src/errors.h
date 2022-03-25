@@ -7,6 +7,9 @@
 // Instruction request is unknown
 #define EXCEPTION_UNKNOWN_INS 0x6D00
 
+// Internal exception
+#define EXCEPTION_INTERNAL 0x6980
+
 // User rejected action
 #define EXCEPTION_USER_REJECTED 0x6985
 

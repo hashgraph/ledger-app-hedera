@@ -162,21 +162,37 @@ CFLAGS += "-I$(NANOPB_DIR)"
 
 # Build rule for proto files
 SOURCE_FILES += proto/BasicTypes.pb.c
-SOURCE_FILES += proto/CryptoCreateTransactionBody.pb.c
-SOURCE_FILES += proto/CryptoTransferTransactionBody.pb.c
+SOURCE_FILES += proto/Wrappers.pb.c
+SOURCE_FILES += proto/CryptoCreate.pb.c
+SOURCE_FILES += proto/Transfer.pb.c
 SOURCE_FILES += proto/TransactionBody.pb.c
+SOURCE_FILES += proto/TokenAssociate.pb.c
+SOURCE_FILES += proto/TokenMint.pb.c
+SOURCE_FILES += proto/TokenBurn.pb.c
 
 proto/BasicTypes.pb.c: proto/BasicTypes.proto
 	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/BasicTypes.proto
 
-proto/CryptoCreateTransactionBody.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoCreateTransactionBody.proto
+proto/Wrappers.pb.c: proto/Wrappers.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/Wrappers.proto
 
-proto/CryptoTransferTransactionBody.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoTransferTransactionBody.proto
+proto/CryptoCreate.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoCreate.proto
+
+proto/Transfer.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/Transfer.proto
 
 proto/TransactionBody.pb.c: proto/BasicTypes.proto
 	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TransactionBody.proto
+
+proto/TokenAssociate.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenAssociate.proto
+
+proto/TokenMint.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenMint.proto
+
+proto/TokenBurn.pb.c: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenBurn.proto
 
 # target to also clean generated proto c files
 .SILENT : cleanall

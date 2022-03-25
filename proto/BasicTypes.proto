@@ -23,6 +23,12 @@ message HederaAccountID {
     uint64 accountNum = 3;
 }
 
+message HederaTokenID {
+    uint64 shardNum = 1;
+    uint64 realmNum = 2;
+    uint64 tokenNum = 3;
+}
+
 message HederaTimestamp {
     uint64 seconds = 1;
     uint32 nanos = 2;

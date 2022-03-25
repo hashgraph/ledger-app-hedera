@@ -5,10 +5,10 @@ enum TransactionStep {
     Summary = 1,
     Operator = 2,
     Senders = 3,
-    Recipients = 4, 
+    Recipients = 4,
     Amount = 5,
     Fee = 6,
-    Memo =  7,
+    Memo = 7,
     Confirm = 8,
     Deny = 9
 };
@@ -17,7 +17,11 @@ enum TransactionType {
     Unknown = -1,
     Verify = 0,
     Create = 1,
-    Transfer = 2
+    Transfer = 2,
+    Associate = 3,
+    TokenTransfer = 4,
+    TokenMint = 5,
+    TokenBurn = 6,
 };
 
 #if defined(TARGET_NANOS)
@@ -64,6 +68,9 @@ unsigned int io_seproxyhal_tx_reject(const bagl_element_t* e);
 
 #endif // TARGET
 
+void reformat_token();
+void reformat_tokens_accounts(char *title_part, uint8_t transfer_index);
+void reformat_accounts(char *title_part, uint8_t transfer_index);
 void reformat_operator();
 void reformat_senders();
 void reformat_recipients();
@@ -71,5 +78,6 @@ void reformat_amount();
 void reformat_fee();
 void reformat_memo();
 void handle_transaction_body();
+void validate_transfer();
 
 #endif //LEDGER_APP_HEDERA_SIGN_TRANSACTION_H
