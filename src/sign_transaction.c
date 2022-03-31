@@ -1230,7 +1230,7 @@ void handle_transaction_body() {
                 // Determine Sender based on amount
                 ctx.transfer_from_index = 0;
                 ctx.transfer_to_index = 1;
-                if (ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[0].amount > 0)
+                if (ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[0].amount > 0)
                 {
                     ctx.transfer_from_index = 1;
                     ctx.transfer_to_index = 0;
@@ -1240,18 +1240,18 @@ void handle_transaction_body() {
                     ctx.senders,
                     DISPLAY_SIZE * 2,
                     "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_from_index].accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_from_index].accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_from_index].accountID.accountNum
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_from_index].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_from_index].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_from_index].accountID.accountNum
                 );
 
                 hedera_snprintf(
                     ctx.recipients,
                     DISPLAY_SIZE * 2,
                     "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_to_index].accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_to_index].accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_to_index].accountID.accountNum
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].accountID.shardNum,
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].accountID.realmNum,
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].accountID.accountNum
                 );
 
                 hedera_snprintf(
@@ -1259,8 +1259,8 @@ void handle_transaction_body() {
                     DISPLAY_SIZE * 2,
                     "%s",
                     hedera_format_amount(
-                        ctx.transaction.data.cryptoTransfer.tokenTransfers[0].accountAmounts[ctx.transfer_to_index].amount,
-                        ctx.transaction.data.cryptoTransfer.tokenTransfers[0].expected_decimals
+                        ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].amount,
+                        ctx.transaction.data.cryptoTransfer.tokenTransfers[0].expected_decimals.value
                     )
                 );
             } else {
