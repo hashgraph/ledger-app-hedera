@@ -1,5 +1,6 @@
 #include <os.h>
 #include <cx.h>
+#include <string.h>
 #include "globals.h"
 #include "hedera.h"
 
