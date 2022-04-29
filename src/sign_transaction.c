@@ -10,6 +10,7 @@
 #include "errors.h"
 #include "handlers.h"
 #include "hedera.h"
+#include "hedera_format.h"
 #include "io.h"
 #include "TransactionBody.pb.h"
 #include "utils.h"
