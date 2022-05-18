@@ -28,12 +28,12 @@ static struct sign_tx_context_t {
     char summary_line_1[DISPLAY_SIZE + 1];
     char summary_line_2[DISPLAY_SIZE + 1];
     char title[DISPLAY_SIZE + 1];
-    
+
     // Account ID: uint64_t.uint64_t.uint64_t
     // Most other entities are shorter
     char full[ACCOUNT_ID_SIZE + 1];
     char partial[DISPLAY_SIZE + 1];
-    
+
     // Steps correspond to parts of the transaction proto
     // type is set based on proto
     enum TransactionStep step;
@@ -630,6 +630,7 @@ void reformat_amount() {
             break;
 
         case TokenMint:
+            validate_decimals(ctx.transaction.data.tokenMint.expected_decimals.value);
             hedera_snprintf(
                 ctx.full,
                 DISPLAY_SIZE * 3,
@@ -643,6 +644,7 @@ void reformat_amount() {
             break;
 
         case TokenBurn:
+            validate_decimals(ctx.transaction.data.tokenBurn.expected_decimals.value);
             hedera_snprintf(
                 ctx.full,
                 DISPLAY_SIZE * 3,
@@ -656,6 +658,7 @@ void reformat_amount() {
             break;
 
         case TokenTransfer:
+            validate_decimals(ctx.transaction.data.cryptoTransfer.tokenTransfers[0].expected_decimals.value);
             hedera_snprintf(
                 ctx.full,
                 DISPLAY_SIZE * 3,
@@ -1255,6 +1258,7 @@ void handle_transaction_body() {
                     ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].accountID.accountNum
                 );
 
+                validate_decimals(ctx.transaction.data.cryptoTransfer.tokenTransfers[0].expected_decimals.value);
                 hedera_snprintf(
                     ctx.amount,
                     DISPLAY_SIZE * 2,
@@ -1311,7 +1315,7 @@ void handle_sign_transaction(
 
     // Key Index
     ctx.key_index = U4LE(buffer, 0);
-    
+
     // Raw Tx
     uint8_t raw_transaction[MAX_TX_SIZE];
     int raw_transaction_length = len - 4;
@@ -1337,7 +1341,7 @@ void handle_sign_transaction(
 
     // Make in memory buffer into stream
     pb_istream_t stream = pb_istream_from_buffer(
-        raw_transaction, 
+        raw_transaction,
         raw_transaction_length
     );
 
@@ -1364,7 +1368,7 @@ void validate_transfer() {
         // More than two accounts in a transfer
         THROW(EXCEPTION_MALFORMED_APDU);
     }
-    
+
     if (
         ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 2 &&
         ctx.transaction.data.cryptoTransfer.tokenTransfers_count != 0
@@ -1388,5 +1392,12 @@ void validate_transfer() {
             // Can't also transfer Hbar if the transaction is an otherwise valid token transfer
             THROW(EXCEPTION_MALFORMED_APDU);
         }
+    }
+}
+
+void validate_decimals(uint32_t decimals) {
+    if (decimals >= 20) {
+        // We only support decimal values less than 20
+        THROW(EXCEPTION_MALFORMED_APDU);
     }
 }
