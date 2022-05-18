@@ -26,6 +26,9 @@ DEF_TEST_FORMAT_TH(one_th,  "0.00000001", 1)
 DEF_TEST_FORMAT_TH(large_h, "21482.73284812", 2148273284812)
 
 DEF_TEST_FORMAT_TOK(value, "51.8321", 518321, 4)
+DEF_TEST_FORMAT_TOK(value_0, "0", 0, 0)
+DEF_TEST_FORMAT_TOK(value_neg_1, "0.000004294967295", -1u, 15)
+DEF_TEST_FORMAT_TOK(value_bad_decimals, "", -1u, 30)
 
 int main(void)
 {
@@ -35,6 +38,9 @@ int main(void)
         cmocka_unit_test(test_format_tinybar_one_th),
         cmocka_unit_test(test_format_tinybar_large_h),
         cmocka_unit_test(test_format_amount_value),
+        cmocka_unit_test(test_format_amount_value_0),
+        cmocka_unit_test(test_format_amount_value_neg_1),
+        cmocka_unit_test(test_format_amount_value_bad_decimals),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

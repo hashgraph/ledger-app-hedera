@@ -14,6 +14,19 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
     // NOTE: format of amounts are not sensitive
     memset(buf, 0, BUF_SIZE);
 
+    // Quick shortcut if the amount is zero
+    // Regardless of decimals, the output is always "0"
+    if (amount == 0) {
+        buf[0] = '0';
+        buf[1] = '\0';
+
+        return buf;
+    }
+
+    // NOTE: we silently fail with a decimal value > 20
+    //  this function shuold only be called on decimal values smaller than 20
+    if (decimals >= 20) return buf;
+
     int i = 0;
 
     while (i < (BUF_SIZE - 1) && (amount > 0 || i < decimals)) {
@@ -40,11 +53,9 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
         tmp = buf[j];
         buf[j] = buf[i];
         buf[i] = tmp;
-        
+
         j += 1;
     }
 
     return buf;
 }
-
-
