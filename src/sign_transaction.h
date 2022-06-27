@@ -79,5 +79,6 @@ void reformat_fee();
 void reformat_memo();
 void handle_transaction_body();
 void validate_transfer();
+void validate_decimals(uint32_t decimals);
 
 #endif //LEDGER_APP_HEDERA_SIGN_TRANSACTION_H
