@@ -27,7 +27,7 @@ APP_LOAD_PARAMS= --curve ed25519 --path "44'/3030'" --appFlags 0x240 $(COMMON_LO
 
 APPVERSION_M = 1
 APPVERSION_N = 1
-APPVERSION_P = 1
+APPVERSION_P = 2
 APPVERSION = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = Hedera
 
@@ -223,4 +223,3 @@ check:
 		$(CFLAGS) \
 		$(addprefix -D, $(DEFINES)) \
 		$(addprefix -I, $(INCLUDES_PATH))
-
