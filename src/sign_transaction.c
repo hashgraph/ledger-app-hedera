@@ -592,7 +592,7 @@ void reformat_token()
     break;
 
   default:
-    return;
+    break;
   }
 
   count_screens();
@@ -1001,6 +1001,7 @@ UX_STEP_VALID(
      "Reject"});
 
 // Transfer UX Flow
+// Summary, Operator, Senders, Recipients, Amount, Fee, Memo, Confirm, Deny
 UX_DEF(
     ux_transfer_flow,
     &ux_tx_flow_1_step,
@@ -1014,6 +1015,7 @@ UX_DEF(
     &ux_tx_flow_9_step);
 
 // Create UX Flow
+// Summary, Operator, Amount, Fee, Memo, Confirm, Deny
 UX_DEF(
     ux_create_flow,
     &ux_tx_flow_1_step,
@@ -1025,10 +1027,21 @@ UX_DEF(
     &ux_tx_flow_9_step);
 
 // Verify UX Flow
+// Summary, Senders, Confirm, Deny
 UX_DEF(
     ux_verify_flow,
     &ux_tx_flow_1_step,
     &ux_tx_flow_3_step,
+    &ux_tx_flow_8_step,
+    &ux_tx_flow_9_step);
+
+// Token Admin Flow
+// Summary, Senders, Amount, Confirm, Deny
+UX_DEF(
+    ux_token_auth_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_3_step,
+    &ux_tx_flow_4_step,
     &ux_tx_flow_8_step,
     &ux_tx_flow_9_step);
 
@@ -1140,6 +1153,14 @@ void handle_transaction_body()
         ctx.transaction.data.tokenMint.token.shardNum,
         ctx.transaction.data.tokenMint.token.realmNum,
         ctx.transaction.data.tokenMint.token.tokenNum);
+
+    hedera_snprintf(
+        ctx.amount,
+        DISPLAY_SIZE * 2,
+        "%s",
+        hedera_format_amount(
+            ctx.transaction.data.tokenMint.amount,
+            ctx.transaction.data.tokenMint.has_expected_decimals ? ctx.transaction.data.tokenMint.expected_decimals : 0));
     break;
 
   case HederaTransactionBody_tokenBurn_tag:
@@ -1160,6 +1181,14 @@ void handle_transaction_body()
         ctx.transaction.data.tokenBurn.token.shardNum,
         ctx.transaction.data.tokenBurn.token.realmNum,
         ctx.transaction.data.tokenBurn.token.tokenNum);
+
+    hedera_snprintf(
+        ctx.amount,
+        DISPLAY_SIZE * 2,
+        "%s",
+        hedera_format_amount(
+            ctx.transaction.data.tokenBurn.amount,
+            ctx.transaction.data.tokenBurn.has_expected_decimals ? ctx.transaction.data.tokenBurn.expected_decimals : 0));
     break;
 
   case HederaTransactionBody_cryptoTransfer_tag:
@@ -1299,9 +1328,11 @@ void handle_transaction_body()
   {
   case Associate:
   case Verify:
+    ux_flow_init(0, ux_verify_flow, NULL);
+    break;
   case TokenMint:
   case TokenBurn:
-    ux_flow_init(0, ux_verify_flow, NULL);
+    ux_flow_init(0, ux_token_auth_flow, NULL);
     break;
   case Create:
     ux_flow_init(0, ux_create_flow, NULL);
