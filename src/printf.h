@@ -10,10 +10,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,19 +35,17 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-
-/**
- * Output a character to a custom device like UART, used by the printf() function
- * This function is declared here only. You have to write your custom implementation somewhere
- * \param character Character to output
- */
-void _putchar(char character);
-
+  /**
+   * Output a character to a custom device like UART, used by the printf() function
+   * This function is declared here only. You have to write your custom implementation somewhere
+   * \param character Character to output
+   */
+  void _putchar(char character);
 
 /**
  * Tiny printf implementation
@@ -58,8 +56,7 @@ void _putchar(char character);
  * \return The number of characters that are written into the array, not counting the terminating null character
  */
 #define hedera_printf hedera_printf_
-int hedera_printf_(const char* format, ...);
-
+  int hedera_printf_(const char *format, ...);
 
 /**
  * Tiny sprintf implementation
@@ -69,8 +66,7 @@ int hedera_printf_(const char* format, ...);
  * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  */
 #define hedera_sprintf hedera_sprintf_
-int hedera_sprintf_(char* buffer, const char* format, ...);
-
+  int hedera_sprintf_(char *buffer, const char *format, ...);
 
 /**
  * Tiny snprintf/vsnprintf implementation
@@ -82,11 +78,10 @@ int hedera_sprintf_(char* buffer, const char* format, ...);
  *         null character. A value equal or larger than count indicates truncation. Only when the returned value
  *         is non-negative and less than count, the string has been completely written.
  */
-#define hedera_snprintf  hedera_snprintf_
+#define hedera_snprintf hedera_snprintf_
 #define hedera_vsnprintf hedera_vsnprintf_
-int  hedera_snprintf_(char* buffer, size_t count, const char* format, ...);
-int hedera_vsnprintf_(char* buffer, size_t count, const char* format, va_list va);
-
+  int hedera_snprintf_(char *buffer, size_t count, const char *format, ...);
+  int hedera_vsnprintf_(char *buffer, size_t count, const char *format, va_list va);
 
 /**
  * Tiny vprintf implementation
@@ -95,23 +90,20 @@ int hedera_vsnprintf_(char* buffer, size_t count, const char* format, va_list va
  * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  */
 #define hedera_vprintf hedera_vprintf_
-int hedera_vprintf_(const char* format, va_list va);
+  int hedera_vprintf_(const char *format, va_list va);
 
-
-/**
- * printf with output function
- * You may use this as dynamic alternative to printf() with its fixed _putchar() output
- * \param out An output function which takes one character and an argument pointer
- * \param arg An argument pointer for user data passed to output function
- * \param format A string that specifies the format of the output
- * \return The number of characters that are sent to the output function, not counting the terminating null character
- */
-int hedera_fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
-
+  /**
+   * printf with output function
+   * You may use this as dynamic alternative to printf() with its fixed _putchar() output
+   * \param out An output function which takes one character and an argument pointer
+   * \param arg An argument pointer for user data passed to output function
+   * \param format A string that specifies the format of the output
+   * \return The number of characters that are sent to the output function, not counting the terminating null character
+   */
+  int hedera_fctprintf(void (*out)(char character, void *arg), void *arg, const char *format, ...);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-#endif  // _PRINTF_H_
+#endif // _PRINTF_H_

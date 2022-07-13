@@ -10,19 +10,16 @@ void shift_partial_key();
 
 static unsigned int ui_get_public_key_compare_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
-);
+    unsigned int button_mask_counter);
 
-static const bagl_element_t* ui_prepro_get_public_key_compare(
-    const bagl_element_t* element
-);
+static const bagl_element_t *ui_prepro_get_public_key_compare(
+    const bagl_element_t *element);
 
 void send_pk();
 
 static unsigned int ui_get_public_key_approve_button(
     unsigned int button_mask,
-    unsigned int button_mask_counter
-);
+    unsigned int button_mask_counter);
 
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
