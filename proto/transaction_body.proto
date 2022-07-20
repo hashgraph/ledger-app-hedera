@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package Hedera;
+
+/*-
+ * ‌
+ * Hedera Network Services Protobuf
+ * ​
+ * Copyright (C) 2018 - 2021 Hedera Hashgraph, LLC
+ * ​
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ‍
+ */
+import "nanopb.proto";
+import "proto/basic_types.proto";
+import "proto/crypto_create.proto";
+import "proto/crypto_transfer.proto";
+import "proto/crypto_update.proto";
+import "proto/duration.proto";
+import "proto/token_associate.proto";
+import "proto/token_burn.proto";
+import "proto/token_dissociate.proto";
+import "proto/token_mint.proto";
+
+/**
+ * A single transaction. All transaction types are possible here.
+ */
+message TransactionBody {
+  /**
+   * The ID for this transaction, which includes the payer's account (the
+   * account paying the transaction fee). If two transactions have the same
+   * transactionID, they won't both have an effect
+   */
+  TransactionID transactionID = 1;
+
+  /**
+   * The account of the node that submits the client's transaction to the
+   * network
+   */
+  AccountID nodeAccountID = 2;
+
+  /**
+   * The maximum transaction fee the client is willing to pay
+   */
+  uint64 transactionFee = 3;
+
+  /**
+   * The transaction is invalid if consensusTimestamp >
+   * transactionID.transactionValidStart + transactionValidDuration
+   */
+  Duration transactionValidDuration = 4;
+
+  /**
+   * Should a record of this transaction be generated? (A receipt is always
+   * generated, but the record is optional)
+   */
+  bool generateRecord = 5 [ deprecated = true ];
+
+  /**
+   * Any notes or descriptions that should be put into the record (max length
+   * 100)
+   */
+  string memo = 6 [ (nanopb).max_size = 100 ];
+
+  /**
+   * The choices here are arranged by service in roughly lexicographical order.
+   * The field ordinals are non-sequential, and a result of the historical order
+   * of implementation.
+   * Limited to supported transactions here
+   */
+  oneof data {
+    /**
+     * Create a new cryptocurrency account
+     */
+    CryptoCreateTransactionBody cryptoCreateAccount = 11;
+
+    /**
+     * Transfer amount between accounts
+     */
+    CryptoTransferTransactionBody cryptoTransfer = 14;
+
+    /**
+     * Modify information such as the expiration date for an account
+     */
+    CryptoUpdateTransactionBody cryptoUpdateAccount = 15;
+
+    /**
+     * Mints new tokens to a token's treasury account
+     */
+    TokenMintTransactionBody tokenMint = 37;
+
+    /**
+     * Burns tokens from a token's treasury account
+     */
+    TokenBurnTransactionBody tokenBurn = 38;
+
+    /**
+     * Associate tokens to an account
+     */
+    TokenAssociateTransactionBody tokenAssociate = 40;
+
+    /**
+     * Dissociate tokens from an account
+     */
+    TokenDissociateTransactionBody tokenDissociate = 41;
+  }
+}

@@ -1,6 +1,6 @@
-#include <string.h>
-
 #include "hedera_format.h"
+
+#include <string.h>
 
 char* hedera_format_tinybar(uint64_t tinybar) {
     return hedera_format_amount(tinybar, 8);
@@ -9,7 +9,7 @@ char* hedera_format_tinybar(uint64_t tinybar) {
 #define BUF_SIZE 32
 
 char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
-    static char buf[BUF_SIZE];
+    static char buf[ BUF_SIZE ];
 
     // NOTE: format of amounts are not sensitive
     memset(buf, 0, BUF_SIZE);
@@ -17,8 +17,8 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
     // Quick shortcut if the amount is zero
     // Regardless of decimals, the output is always "0"
     if (amount == 0) {
-        buf[0] = '0';
-        buf[1] = '\0';
+        buf[ 0 ] = '0';
+        buf[ 1 ] = '\0';
 
         return buf;
     }
@@ -33,15 +33,15 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
         int digit = amount % 10;
         amount /= 10;
 
-        buf[i++] = '0' + digit;
+        buf[ i++ ] = '0' + digit;
 
         if (i == decimals) {
-            buf[i++] = '.';
+            buf[ i++ ] = '.';
         }
     }
 
-    if (buf[i - 1] == '.') {
-        buf[i++] = '0';
+    if (buf[ i - 1 ] == '.') {
+        buf[ i++ ] = '0';
     }
 
     int size = i;
@@ -51,17 +51,17 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
     while (j < i) {
         i -= 1;
 
-        tmp = buf[j];
-        buf[j] = buf[i];
-        buf[i] = tmp;
+        tmp = buf[ j ];
+        buf[ j ] = buf[ i ];
+        buf[ i ] = tmp;
 
         j += 1;
     }
 
     for (j = size - 1; j > 0; j--) {
-        if (buf[j] == '0') {
+        if (buf[ j ] == '0') {
             continue;
-        } else if (buf[j] == '.') {
+        } else if (buf[ j ] == '.') {
             break;
         } else {
             j += 1;
@@ -70,7 +70,7 @@ char* hedera_format_amount(uint64_t amount, uint8_t decimals) {
     }
 
     if (j < size - 1) {
-        buf[j] = '\0';
+        buf[ j ] = '\0';
     }
 
     return buf;

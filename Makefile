@@ -1,6 +1,6 @@
 #*******************************************************************************
 #   Ledger App Hedera
-#   (c) 2019 Hedera Hashgraph
+#   (c) 2022 Hedera Hashgraph
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -161,43 +161,59 @@ SOURCE_FILES += $(NANOPB_CORE)
 CFLAGS += "-I$(NANOPB_DIR)"
 
 # Build rule for proto files
-SOURCE_FILES += proto/BasicTypes.pb.c
-SOURCE_FILES += proto/Wrappers.pb.c
-SOURCE_FILES += proto/CryptoCreate.pb.c
-SOURCE_FILES += proto/Transfer.pb.c
-SOURCE_FILES += proto/TransactionBody.pb.c
-SOURCE_FILES += proto/TokenAssociate.pb.c
-SOURCE_FILES += proto/TokenMint.pb.c
-SOURCE_FILES += proto/TokenBurn.pb.c
+SOURCE_FILES += proto/duration.pb.c
+SOURCE_FILES += proto/timestamp.pb.c
+SOURCE_FILES += proto/wrappers.pb.c
+SOURCE_FILES += proto/basic_types.pb.c
+SOURCE_FILES += proto/transaction_body.pb.c
+SOURCE_FILES += proto/token_associate.pb.c
+SOURCE_FILES += proto/token_dissociate.pb.c
+SOURCE_FILES += proto/token_mint.pb.c
+SOURCE_FILES += proto/token_burn.pb.c
+SOURCE_FILES += proto/crypto_create.pb.c
+SOURCE_FILES += proto/crypto_transfer.pb.c
+SOURCE_FILES += proto/crypto_update.pb.c
 
-proto/BasicTypes.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/BasicTypes.proto
+proto/duration.pb.c: proto/duration.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/duration.proto
 
-proto/Wrappers.pb.c: proto/Wrappers.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/Wrappers.proto
+proto/timestamp.pb.c: proto/timestamp.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/timestamp.proto
 
-proto/CryptoCreate.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/CryptoCreate.proto
+proto/wrappers.pb.c: proto/wrappers.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/wrappers.proto
 
-proto/Transfer.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/Transfer.proto
+proto/basic_types.pb.c: proto/basic_types.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/basic_types.proto
 
-proto/TransactionBody.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TransactionBody.proto
+proto/transaction_body.pb.c: proto/transaction_body.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/transaction_body.proto
 
-proto/TokenAssociate.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenAssociate.proto
+proto/token_associate.pb.c: proto/token_associate.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_associate.proto
 
-proto/TokenMint.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenMint.proto
+proto/token_dissociate.pb.c: proto/token_dissociate.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_dissociate.proto
 
-proto/TokenBurn.pb.c: proto/BasicTypes.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenBurn.proto
+proto/token_mint.pb.c: proto/token_mint.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_mint.proto
+
+proto/token_burn.pb.c: proto/token_burn.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_burn.proto
+
+proto/crypto_create.pb.c: proto/crypto_create.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_create.proto
+
+proto/crypto_transfer.pb.c: proto/crypto_transfer.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_transfer.proto
+
+proto/crypto_update.pb.c: proto/crypto_update.proto
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_update.proto
 
 # target to also clean generated proto c files
 .SILENT : cleanall
 cleanall : clean
-	-@rm -rf proto/*.pb.c proto/*.pb.h
+	-@rm -rf proto/*.pb.c proto/*.pb.h src/*.pb.h src/*.pb.c
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
