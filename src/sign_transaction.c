@@ -440,7 +440,7 @@ void reformat_operator() {
     hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
-                    ctx.transaction.transactionID.accountID.account);
+                    ctx.transaction.transactionID.accountID.account.accountNum);
 
     count_screens_of_step();
 
@@ -460,7 +460,7 @@ void reformat_accounts(char* title_part, uint8_t transfer_index) {
                         .accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.transfers
                         .accountAmounts[ transfer_index ]
-                        .accountID.account);
+                        .accountID.account.accountNum);
 
     count_screens_of_step();
 
@@ -471,19 +471,21 @@ void reformat_accounts(char* title_part, uint8_t transfer_index) {
 void reformat_stake_target() {
     switch (ctx.type) {
         case Create: {
-            if (ctx.transaction.data.cryptoCreateAccount.which_staked_id >=
-                ACCOUNT_ID_SIZE) {
+            if (ctx.transaction.data.cryptoCreateAccount.which_staked_id ==
+                Hedera_CryptoCreateTransactionBody_staked_account_id_tag) {
                 // An account ID and not a Node ID
-                hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
-                                ctx.transaction.data.cryptoCreateAccount
-                                    .staked_id.staked_account_id.shardNum,
-                                ctx.transaction.data.cryptoCreateAccount
-                                    .staked_id.staked_account_id.realmNum,
-                                ctx.transaction.data.cryptoCreateAccount
-                                    .staked_id.staked_account_id.account);
+                hedera_snprintf(
+                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.transaction.data.cryptoCreateAccount.staked_id
+                        .staked_account_id.shardNum,
+                    ctx.transaction.data.cryptoCreateAccount.staked_id
+                        .staked_account_id.realmNum,
+                    ctx.transaction.data.cryptoCreateAccount.staked_id
+                        .staked_account_id.account.accountNum);
             } else if (ctx.transaction.data.cryptoCreateAccount
-                           .which_staked_id == sizeof(uint64_t)) {
-                hedera_snprintf(ctx.full, DISPLAY_SIZE, "Node %d",
+                           .which_staked_id ==
+                       Hedera_CryptoCreateTransactionBody_staked_node_id_tag) {
+                hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "Node %lld",
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_node_id);
             } else {
@@ -492,20 +494,22 @@ void reformat_stake_target() {
         } break;
 
         case Update: {
-            if (ctx.transaction.data.cryptoUpdateAccount.which_staked_id >=
-                ACCOUNT_ID_SIZE) {
+            if (ctx.transaction.data.cryptoUpdateAccount.which_staked_id ==
+                Hedera_CryptoUpdateTransactionBody_staked_account_id_tag) {
                 // An account ID and not a Node ID
-                hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
-                                ctx.transaction.data.cryptoUpdateAccount
-                                    .staked_id.staked_account_id.shardNum,
-                                ctx.transaction.data.cryptoUpdateAccount
-                                    .staked_id.staked_account_id.realmNum,
-                                ctx.transaction.data.cryptoUpdateAccount
-                                    .staked_id.staked_account_id.account);
+                hedera_snprintf(
+                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.transaction.data.cryptoUpdateAccount.staked_id
+                        .staked_account_id.shardNum,
+                    ctx.transaction.data.cryptoUpdateAccount.staked_id
+                        .staked_account_id.realmNum,
+                    ctx.transaction.data.cryptoUpdateAccount.staked_id
+                        .staked_account_id.account.accountNum);
             } else if (ctx.transaction.data.cryptoUpdateAccount
-                           .which_staked_id == sizeof(uint64_t)) {
-                hedera_snprintf(ctx.full, DISPLAY_SIZE, "Node %d",
-                                ctx.transaction.data.cryptoCreateAccount
+                           .which_staked_id ==
+                       Hedera_CryptoUpdateTransactionBody_staked_node_id_tag) {
+                hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "Node %lld",
+                                ctx.transaction.data.cryptoUpdateAccount
                                     .staked_id.staked_node_id);
             } else {
                 hedera_snprintf(ctx.full, DISPLAY_SIZE, "%s", "None");
@@ -578,7 +582,7 @@ void reformat_tokens_accounts(char* title_part, uint8_t transfer_index) {
                         .accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
                         .transfers[ transfer_index ]
-                        .accountID.account);
+                        .accountID.account.accountNum);
 
     count_screens_of_step();
 
@@ -629,8 +633,7 @@ void reformat_collect_rewards() {
         } break;
 
         case Update: {
-            if (ctx.transaction.data.cryptoUpdateAccount.decline_reward.value !=
-                NULL) {
+            if (ctx.transaction.data.cryptoUpdateAccount.has_decline_reward) {
                 bool declineRewards = ctx.transaction.data.cryptoUpdateAccount
                                           .decline_reward.value;
                 hedera_snprintf(ctx.full, MAX_MEMO_SIZE, "%s",
@@ -687,15 +690,19 @@ void reformat_amount() {
         case Update: {
             if (ctx.transaction.data.cryptoUpdateAccount
                     .has_accountIDToUpdate) {
-                hedera_snprintf(
-                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoUpdateAccount.accountIDToUpdate);
+                hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                                ctx.transaction.data.cryptoUpdateAccount
+                                    .accountIDToUpdate.shardNum,
+                                ctx.transaction.data.cryptoUpdateAccount
+                                    .accountIDToUpdate.realmNum,
+                                ctx.transaction.data.cryptoUpdateAccount
+                                    .accountIDToUpdate.account.accountNum);
             } else {
                 hedera_snprintf(
                     ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
-                    ctx.transaction.transactionID.accountID.account);
+                    ctx.transaction.transactionID.accountID.account.accountNum);
             }
         } break;
 
@@ -750,13 +757,12 @@ void reformat_amount() {
     switch (ctx.type) {
         case Update:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)",
-                            "Target Account", ctx.display_index,
+                            "Update Account", ctx.display_index,
                             ctx.display_count);
             break;
         case Create:
-            hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)",
-                            "Initial Balance", ctx.display_index,
-                            ctx.display_count);
+            hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Balance",
+                            ctx.display_index, ctx.display_count);
             break;
         default:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Amount",
@@ -1047,26 +1053,28 @@ void handle_transaction_body() {
             ctx.type = Create;
             hedera_sprintf(ctx.summary_line_1, "Create Account");
             hedera_sprintf(ctx.senders_title, "Stake To");
-            hedera_sprintf(ctx.recipients_title, "Collect Rewards");
-            hedera_sprintf(ctx.amount_title, "Initial Balance");
+            hedera_sprintf(ctx.recipients_title, "Collect Rewards?");
+            hedera_sprintf(ctx.amount_title, "Balance");
 
-            const char stake_target[ DISPLAY_SIZE * 2 ];
+            const char stake_target[ ACCOUNT_ID_SIZE ];
 
-            if (ctx.transaciton.data.cryptoCreateAccount.which_staked_id >=
-                ACCOUNT_ID_SIZE) {
-                hedera_snprintf(stake_target, DISPLAY_SIZE * 2,
-                                "%llu.%llu.%llu",
+            if (ctx.transaciton.data.cryptoCreateAccount.which_staked_id ==
+                Hedera_CrytoCreateTransactionBody_staked_account_id_tag) {
+                hedera_snprintf(stake_target, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_account_id.shardNum,
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_account_id.realmNum,
                                 ctx.transaction.data.cryptoCreateAccount
-                                    .staked_id.staked_account_id.account);
+                                    .staked_id.staked_account_id.accountNum);
             } else if (ctx.transaction.data.cryptoCreateAccount
-                           .which_staked_id == sizeof(uint64_t)) {
-                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "Node %d",
+                           .which_staked_id ==
+                       Hedera_CryptoCreateTransactionBody_staked_node_id_tag) {
+                hedera_snprintf(stake_target, ACCOUNT_ID_SIZE, "Node %lld",
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_node_id);
+            } else {
+                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None")
             }
 
             hedera_snprintf(ctx.senders, DISPLAY_SIZE * 2, "%s", stake_target);
@@ -1088,12 +1096,12 @@ void handle_transaction_body() {
             hedera_sprintf(ctx.summary_line_1, "Update Account");
             hedera_sprintf(ctx.senders_title, "Stake To");
             hedera_sprintf(ctx.recipients_title, "Collect Rewards");
-            hedera_sprintf(ctx.amount_title, "Updated Account");
+            hedera_sprintf(ctx.amount_title, "Update Account");
 
             const char stake_target[ DISPLAY_SIZE * 2 ];
 
-            if (ctx.transaciton.data.cryptoUpdateAccount.which_staked_id >=
-                ACCOUNT_ID_SIZE) {
+            if (ctx.transaciton.data.cryptoUpdateAccount.which_staked_id ==
+                Hedera_CryptoUpdateTransactionBody_staked_account_id_tag) {
                 hedera_snprintf(stake_target, DISPLAY_SIZE * 2,
                                 "%llu.%llu.%llu",
                                 ctx.transaction.data.cryptoUpdateAccount
@@ -1101,22 +1109,28 @@ void handle_transaction_body() {
                                 ctx.transaction.data.cryptoUpdateAccount
                                     .staked_id.staked_account_id.realmNum,
                                 ctx.transaction.data.cryptoUpdateAccount
-                                    .staked_id.staked_account_id.account);
+                                    .staked_id.staked_account_id.accountNum);
             } else if (ctx.transaction.data.cryptoUpdateAccount
-                           .which_staked_id == sizeof(uint64_t)) {
-                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "%d",
+                           .which_staked_id ==
+                       Hedera_CryptoUpdateTransactionBody_staked_node_id_tag) {
+                hedera_snprintf(stake_target, ACCOUNT_ID_SIZE, "Node %lld",
                                 ctx.transaction.data.cryptoUpdateAccount
                                     .staked_id.staked_node_id);
+            } else {
+                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None")
             }
 
             hedera_snprintf(ctx.senders, DISPLAY_SIZE * 2, "%s", stake_target);
 
-            Hedera_BoolValue declineRewards =
-                ctx.transaction.data.cryptoUpdateAccount.decline_reward.value;
-            hedera_snprintf(ctx.recipients, DISPLAY_SIZE * 2, "%s",
-                            declineRewards == NULL ? "-"
-                            : declineRewards       ? "No"
-                                                   : "Yes");
+            if (ctx.transaction.data.cryptoUpdateAccount.has_decline_reward) {
+                Hedera_BoolValue declineRewards =
+                    ctx.transaction.data.cryptoUpdateAccount.decline_reward
+                        .value;
+                hedera_snprintf(ctx.recipients, DISPLAY_SIZE, "%s",
+                                declineRewards ? "No" : "Yes");
+            } else {
+                hedera_snprintf(ctx.recipients, DISPLAY_SIZE, "%s", "-");
+            }
 
             if (ctx.transaction.data.cryptoUpdateAccount
                     .has_accountIDToUpdate) {
@@ -1125,7 +1139,7 @@ void handle_transaction_body() {
                 hedera_snprintf(ctx.amount, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
                                 updatedAccount.shardNum,
                                 updatedAccount.realmNum,
-                                updatedAccount.account);
+                                updatedAccount.accountNum);
             } else {
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
