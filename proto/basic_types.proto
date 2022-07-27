@@ -308,17 +308,18 @@ message TokenTransferList {
   /**
    * Applicable to tokens of type FUNGIBLE_COMMON. Multiple list of
    * AccountAmounts, each of which has an account and amount
-   * Limited to 1 for 1 allowed transfer
+   * Limited to 2 for 1 allowed transfer (reciprocal subtraction of balance +
+   * actual transfer)
    */
-  repeated AccountAmount transfers = 2 [ (nanopb).max_count = 1 ];
+  repeated AccountAmount transfers = 2 [ (nanopb).max_count = 2 ];
 
   /**
    * Applicable to tokens of type NON_FUNGIBLE_UNIQUE. Multiple list of
    * NftTransfers, each of which has a sender and receiver account, including
    * the serial number of the NFT
-   * Limited to 0, no NFTs on device
+   * Limited to 1 here
    */
-  repeated NftTransfer nftTransfers = 3 [ (nanopb).max_count = 0 ];
+  repeated NftTransfer nftTransfers = 3 [ (nanopb).max_count = 1 ];
 
   /**
    * If present, the number of decimals this fungible token type is expected to

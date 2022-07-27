@@ -71,8 +71,8 @@ static struct sign_tx_context_t {
     enum TransactionStep step;
     enum TransactionType type;
 
-    uint8_t display_index; // 1 -> Number Screens
-    uint8_t display_count; // Number Screens
+    uint8_t current_page; // 1 -> Number Screens
+    uint8_t page_count;   // Number Screens
 
     // Parsed transaction
     Hedera_TransactionBody transaction;

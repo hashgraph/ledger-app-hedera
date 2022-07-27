@@ -101,13 +101,13 @@ unsigned int ui_tx_summary_step_button(unsigned int button_mask,
                                        button_mask_counter) {
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
+            ctx.current_page = 1;
+
             if (ctx.type == Verify) {
                 ctx.step = Senders;
-                ctx.display_index = 1;
                 reformat_senders();
             } else {
                 ctx.step = Operator;
-                ctx.display_index = 1;
                 reformat_operator();
             }
             UX_DISPLAY(ui_tx_intermediate_step, NULL);
@@ -123,30 +123,30 @@ void handle_intermediate_left_press() {
         case Operator: {
             if (first_screen_of_step()) {
                 // All: Summary <-- Operator
+                ctx.current_page = 1;
                 ctx.step = Summary;
-                ctx.display_index = 1;
                 UX_DISPLAY(ui_tx_summary_step, NULL);
             } else { // Scroll Left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_operator();
             }
         } break;
 
         case Senders: {
             if (first_screen_of_step()) { // Return to Operator
+                ctx.current_page = 1;
+
                 if (ctx.type == Verify) {
                     // Verify: Summary <-- Senders
                     ctx.step = Summary;
-                    ctx.display_index = 1;
                     UX_DISPLAY(ui_tx_summary_step, NULL);
                 } else {
                     // All (!Verify): Operator <-- Senders
                     ctx.step = Operator;
                     reformat_operator();
-                    ctx.display_index = ctx.display_count;
                 }
             } else { // Scroll Left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_senders();
             }
 
@@ -155,11 +155,11 @@ void handle_intermediate_left_press() {
         case Recipients: {
             if (first_screen_of_step()) {
                 // All: Senders <-- Recipients
+                ctx.current_page = 1;
                 ctx.step = Senders;
                 reformat_senders();
-                ctx.display_index = ctx.display_count;
             } else { // Scroll Left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_recipients();
             }
 
@@ -167,19 +167,19 @@ void handle_intermediate_left_press() {
 
         case Amount: {
             if (first_screen_of_step()) {
+                ctx.current_page = 1;
+
                 if (ctx.type == TokenMint || ctx.type == TokenBurn) {
                     // Mint, Burn: Senders <-- Amount
                     ctx.step = Senders;
                     reformat_senders();
-                    ctx.display_index = ctx.display_count;
                 } else {
                     // All (!Mint, !Burn): Recipients <-- Amount
                     ctx.step = Recipients;
                     reformat_recipients();
-                    ctx.display_index = ctx.display_count;
                 }
             } else { // Scroll left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_amount();
             }
 
@@ -187,19 +187,19 @@ void handle_intermediate_left_press() {
 
         case Fee: {
             if (first_screen_of_step()) {
+                ctx.current_page = 1;
+
                 if (ctx.type == Associate || ctx.type == Dissociate) {
                     // Associate, Dissociate: Senders <-- Fee
                     ctx.step = Senders;
                     reformat_senders();
-                    ctx.display_index = ctx.display_count;
                 } else {
                     // All (!Associate, !Dissociate): Recipients <-- Fee
                     ctx.step = Recipients;
                     reformat_recipients();
-                    ctx.display_index = ctx.display_count;
                 }
             } else { // Scroll left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_fee();
             }
 
@@ -208,11 +208,11 @@ void handle_intermediate_left_press() {
         case Memo: {
             if (first_screen_of_step()) {
                 // All: Fee <-- Memo
+                ctx.current_page = 1;
                 ctx.step = Fee;
                 reformat_fee();
-                ctx.display_index = ctx.display_count;
             } else { // Scroll Left
-                ctx.display_index--;
+                ctx.current_page--;
                 reformat_memo();
             }
 
@@ -233,10 +233,10 @@ void handle_intermediate_right_press() {
             if (last_screen_of_step()) {
                 // All: Operator --> Senders
                 ctx.step = Senders;
-                ctx.display_index = 1;
+                ctx.current_page = 1;
                 reformat_senders();
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_operator();
             }
 
@@ -244,29 +244,27 @@ void handle_intermediate_right_press() {
 
         case Senders: {
             if (last_screen_of_step()) {
+                ctx.current_page = 1;
+
                 if (ctx.type == Verify) {
                     // Verify: Senders --> Confirm
                     ctx.step = Confirm;
-                    ctx.display_index = 1;
                     UX_DISPLAY(ui_tx_confirm_step, NULL);
                 } else if (ctx.type == Associate || ctx.type == Dissociate) {
                     // Associate, Dissociate: Senders --> Fee
                     ctx.step = Fee;
-                    ctx.display_index = 1;
                     reformat_fee();
                 } else if (ctx.type == TokenMint || ctx.type == TokenBurn) {
                     // Mint, Burn: Senders --> Amount
                     ctx.step = Amount;
-                    ctx.display_index = 1;
                     reformat_amount();
                 } else {
                     // Create, Update, Transfer: Senders --> Recipients
                     ctx.step = Recipients;
-                    ctx.display_index = 1;
                     reformat_recipients();
                 }
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_senders();
             }
 
@@ -276,10 +274,10 @@ void handle_intermediate_right_press() {
             if (last_screen_of_step()) {
                 // All (Create, Update, Transfer): Recipients --> Amount
                 ctx.step = Amount;
-                ctx.display_index = 1;
+                ctx.current_page = 1;
                 reformat_amount();
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_recipients();
             }
 
@@ -290,10 +288,10 @@ void handle_intermediate_right_press() {
                 // All (Create, Update, Transfer, TokenMint, TokenBurn): Amount
                 // --> Fee
                 ctx.step = Fee;
-                ctx.display_index = 1;
+                ctx.current_page = 1;
                 reformat_fee();
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_amount();
             }
 
@@ -303,10 +301,10 @@ void handle_intermediate_right_press() {
             if (last_screen_of_step()) {
                 // All: Fee --> Memo
                 ctx.step = Memo;
-                ctx.display_index = 1;
+                ctx.current_page = 1;
                 reformat_memo();
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_fee();
             }
 
@@ -316,10 +314,10 @@ void handle_intermediate_right_press() {
             if (last_screen_of_step()) {
                 // All: Memo --> Confirm
                 ctx.step = Confirm;
-                ctx.display_index = 1;
+                ctx.current_page = 1;
                 UX_DISPLAY(ui_tx_confirm_step, NULL);
             } else { // Scroll Right
-                ctx.display_index++;
+                ctx.current_page++;
                 reformat_memo();
             }
         } break;
@@ -358,15 +356,15 @@ unsigned int ui_tx_confirm_step_button(unsigned int button_mask,
                                        button_mask_counter) {
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
+            ctx.current_page = 1;
+
             if (ctx.type == Verify) {
                 // Verify: Senders <-- Confirm
                 ctx.step = Senders;
                 reformat_senders();
-                ctx.display_index = ctx.display_count;
             } else {
                 // All (!Verify): Memo <-- Confirm
                 ctx.step = Memo;
-                ctx.display_index = 1;
                 reformat_memo();
             }
             UX_DISPLAY(ui_tx_intermediate_step, NULL);
@@ -420,21 +418,19 @@ uint8_t num_screens(size_t length) {
     return screens;
 }
 
-void count_screens_of_step() {
-    ctx.display_count = num_screens(strlen(ctx.full));
-}
+void count_screens_of_step() { ctx.page_count = num_screens(strlen(ctx.full)); }
 
 void repaint() {
     // Slide window (partial) along full entity (full) by DISPLAY_SIZE chars
     explicit_bzero(ctx.partial, DISPLAY_SIZE + 1);
-    memmove(ctx.partial, ctx.full + (DISPLAY_SIZE * (ctx.display_index - 1)),
+    memmove(ctx.partial, ctx.full + (DISPLAY_SIZE * (ctx.current_page - 1)),
             DISPLAY_SIZE);
     UX_REDISPLAY();
 }
 
-bool last_screen_of_step() { return ctx.display_index == ctx.display_count; }
+bool last_screen_of_step() { return ctx.current_page == ctx.page_count; }
 
-bool first_screen_of_step() { return ctx.display_index == 1; }
+bool first_screen_of_step() { return ctx.current_page == 1; }
 
 void reformat_operator() {
     hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
@@ -445,7 +441,7 @@ void reformat_operator() {
     count_screens_of_step();
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "Operator (%u/%u)",
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 
     repaint();
 }
@@ -465,7 +461,7 @@ void reformat_accounts(char* title_part, uint8_t transfer_index) {
     count_screens_of_step();
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", title_part,
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 }
 
 void reformat_stake_target() {
@@ -523,7 +519,7 @@ void reformat_stake_target() {
     count_screens_of_step();
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "Stake To (%u/%u)",
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 }
 
 void reformat_token() {
@@ -568,8 +564,8 @@ void reformat_token() {
 
     count_screens_of_step();
 
-    hedera_snprintf(ctx.title, DISPLAY_SIZE, "Token (%u/%u)", ctx.display_index,
-                    ctx.display_count);
+    hedera_snprintf(ctx.title, DISPLAY_SIZE, "Token (%u/%u)", ctx.current_page,
+                    ctx.page_count);
 }
 
 void reformat_tokens_accounts(char* title_part, uint8_t transfer_index) {
@@ -587,7 +583,7 @@ void reformat_tokens_accounts(char* title_part, uint8_t transfer_index) {
     count_screens_of_step();
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", title_part,
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 }
 
 void reformat_senders() {
@@ -650,7 +646,7 @@ void reformat_collect_rewards() {
     count_screens_of_step(); // 1
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "Collect Rewards?",
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 
     repaint();
 }
@@ -734,9 +730,6 @@ void reformat_amount() {
             break;
 
         case TokenTransfer:
-            validate_decimals(
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                    .expected_decimals.value);
             hedera_snprintf(
                 ctx.full, DISPLAY_SIZE * 3, "%s",
                 hedera_format_amount(
@@ -757,16 +750,15 @@ void reformat_amount() {
     switch (ctx.type) {
         case Update:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)",
-                            "Update Account", ctx.display_index,
-                            ctx.display_count);
+                            "Update Account", ctx.current_page, ctx.page_count);
             break;
         case Create:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Balance",
-                            ctx.display_index, ctx.display_count);
+                            ctx.current_page, ctx.page_count);
             break;
         default:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Amount",
-                            ctx.display_index, ctx.display_count);
+                            ctx.current_page, ctx.page_count);
             break;
     }
 
@@ -780,7 +772,7 @@ void reformat_fee() {
     count_screens_of_step();
 
     hedera_snprintf(ctx.title, DISPLAY_SIZE, "Max Fee (%u/%u)",
-                    ctx.display_index, ctx.display_count);
+                    ctx.current_page, ctx.page_count);
 
     repaint();
 }
@@ -792,8 +784,8 @@ void reformat_memo() {
 
     count_screens_of_step();
 
-    hedera_snprintf(ctx.title, DISPLAY_SIZE, "Memo (%u/%u)", ctx.display_index,
-                    ctx.display_count);
+    hedera_snprintf(ctx.title, DISPLAY_SIZE, "Memo (%u/%u)", ctx.current_page,
+                    ctx.page_count);
 
     repaint();
 }
@@ -807,8 +799,8 @@ void handle_transaction_body() {
     // Step 1, Unknown Type, Screen 1 of 1
     ctx.step = Summary;
     ctx.type = Unknown;
-    ctx.display_index = 1;
-    ctx.display_count = 1;
+    ctx.current_page = 1;
+    ctx.page_count = 1;
 
     // <Do Action>
     // with Key #X?
@@ -872,13 +864,12 @@ void handle_transaction_body() {
                                 "Verify Account");
             } else if (ctx.transaction.data.cryptoTransfer.transfers
                            .accountAmounts_count == 2) {
-                // Number of Accounts == 2
-                // Some other Transfer Transaction
+                // Hbar Transfer between two accounts
                 ctx.type = Transfer;
 
                 hedera_snprintf(ctx.summary_line_1, DISPLAY_SIZE, "Send Hbar");
 
-                // Determine Sender based on amount
+                // Determine Sender based on transfers.accountAmounts
                 ctx.transfer_to_index = 1;
                 ctx.transfer_from_index = 0;
                 if (ctx.transaction.data.cryptoTransfer.transfers
@@ -888,8 +879,16 @@ void handle_transaction_body() {
                     ctx.transfer_from_index = 1;
                 }
             } else if (ctx.transaction.data.cryptoTransfer
-                           .tokenTransfers_count == 1) {
+                               .tokenTransfers_count == 1 &&
+                       ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                               .transfers_count == 1) {
+                // Fungible Token Transfer
                 ctx.type = TokenTransfer;
+
+                // Transactions fail if not given in the right denomination
+                validate_decimals(
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                        .expected_decimals.value);
 
                 hedera_snprintf(
                     ctx.summary_line_1, DISPLAY_SIZE, "Send %llu.%llu.%llu",
@@ -1244,12 +1243,12 @@ void handle_transaction_body() {
             } else if (ctx.transaction.data.cryptoTransfer.transfers
                            .accountAmounts_count == 2) {
                 // Number of Accounts == 2
-                // Some other Transfer Transaction
+                // Hbar transfer between two accounts
                 ctx.type = Transfer;
 
                 hedera_sprintf(ctx.summary_line_1, "Send Hbar");
 
-                // Determine Sender based on amount
+                // Determine Sender based on transfers.accountAmounts
                 ctx.transfer_from_index = 0;
                 ctx.transfer_to_index = 1;
                 if (ctx.transaction.data.cryptoTransfer.transfers
@@ -1289,8 +1288,16 @@ void handle_transaction_body() {
                             .accountAmounts[ ctx.transfer_to_index ]
                             .amount));
             } else if (ctx.transaction.data.cryptoTransfer
-                           .tokenTransfers_count == 1) {
+                               .tokenTransfers_count == 1 &&
+                       ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                               .transfers_count == 1) {
+                // Fungible Token Transfer
                 ctx.type = TokenTransfer;
+
+                // Transactions fail if not given in the correct denomination
+                validate_decimals(
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                        .expected_decimals.value);
 
                 hedera_snprintf(
                     ctx.summary_line_1, DISPLAY_SIZE * 2, "Send %llu.%llu.%llu",
@@ -1335,9 +1342,6 @@ void handle_transaction_body() {
                         .transfers[ ctx.transfer_to_index ]
                         .accountID.accountNum);
 
-                validate_decimals(
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .expected_decimals.value);
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%s",
                     hedera_format_amount(

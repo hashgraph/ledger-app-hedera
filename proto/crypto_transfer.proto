@@ -41,9 +41,8 @@ import "proto/basic_types.proto";
 message CryptoTransferTransactionBody {
   /**
    * The desired hbar balance adjustments
-   * Limited to 1 here
    */
-  TransferList transfers = 1 [ (nanopb).max_count = 1 ];
+  TransferList transfers = 1;
 
   /**
    * The desired token unit balance adjustments; if any custom fees are
