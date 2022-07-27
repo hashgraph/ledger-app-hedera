@@ -107,6 +107,7 @@ void reformat_tokens_accounts(char* title_part, uint8_t transfer_index);
 void reformat_accounts(char* title_part, uint8_t transfer_index);
 void reformat_stake_target();
 void reformat_collect_rewards();
+void reformat_target_account();
 void reformat_operator();
 void reformat_senders();
 void reformat_recipients();
