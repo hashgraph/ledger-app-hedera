@@ -47,6 +47,7 @@ enum TransactionType {
 
 void handle_transaction_body();
 void validate_decimals(uint32_t decimals);
+void validate_token_transfer();
 
 #if defined(TARGET_NANOS)
 // Transaction Context

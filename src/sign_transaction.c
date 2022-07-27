@@ -194,9 +194,9 @@ void handle_intermediate_left_press() {
                     ctx.step = Senders;
                     reformat_senders();
                 } else {
-                    // All (!Associate, !Dissociate): Recipients <-- Fee
-                    ctx.step = Recipients;
-                    reformat_recipients();
+                    // All (!Associate, !Dissociate): Amount <-- Fee
+                    ctx.step = Amount;
+                    reformat_amount();
                 }
             } else { // Scroll left
                 ctx.current_page--;
@@ -569,16 +569,17 @@ void reformat_token() {
 }
 
 void reformat_tokens_accounts(char* title_part, uint8_t transfer_index) {
-    hedera_snprintf(ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ transfer_index ]
-                        .accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ transfer_index ]
-                        .accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ transfer_index ]
-                        .accountID.account.accountNum);
+    hedera_snprintf(
+        ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ transfer_index ]
+            .transfers[ 0 ]
+            .accountID.shardNum,
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ transfer_index ]
+            .transfers[ 0 ]
+            .accountID.realmNum,
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ transfer_index ]
+            .transfers[ 0 ]
+            .accountID.account.accountNum);
 
     count_screens_of_step();
 
@@ -730,14 +731,15 @@ void reformat_amount() {
             break;
 
         case TokenTransfer:
-            hedera_snprintf(
-                ctx.full, DISPLAY_SIZE * 3, "%s",
-                hedera_format_amount(
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_to_index ]
-                        .amount,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .expected_decimals.value));
+            hedera_snprintf(ctx.full, DISPLAY_SIZE * 3, "%s",
+                            hedera_format_amount(
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_to_index ]
+                                    .transfers[ 0 ]
+                                    .amount,
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_to_index ]
+                                    .expected_decimals.value));
 
             break;
 
@@ -749,8 +751,8 @@ void reformat_amount() {
 
     switch (ctx.type) {
         case Update:
-            hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)",
-                            "Update Account", ctx.current_page, ctx.page_count);
+            hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Updating",
+                            ctx.current_page, ctx.page_count);
             break;
         case Create:
             hedera_snprintf(ctx.title, DISPLAY_SIZE, "%s (%u/%u)", "Balance",
@@ -879,16 +881,12 @@ void handle_transaction_body() {
                     ctx.transfer_from_index = 1;
                 }
             } else if (ctx.transaction.data.cryptoTransfer
-                               .tokenTransfers_count == 1 &&
-                       ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                               .transfers_count == 1) {
-                // Fungible Token Transfer
+                           .tokenTransfers_count == 2) {
+                // Fungible Token Transfer (two token transfers with one
+                // transfer each)
                 ctx.type = TokenTransfer;
 
-                // Transactions fail if not given in the right denomination
-                validate_decimals(
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .expected_decimals.value);
+                validate_token_transfer();
 
                 hedera_snprintf(
                     ctx.summary_line_1, DISPLAY_SIZE, "Send %llu.%llu.%llu",
@@ -1095,7 +1093,7 @@ void handle_transaction_body() {
             hedera_sprintf(ctx.summary_line_1, "Update Account");
             hedera_sprintf(ctx.senders_title, "Stake To");
             hedera_sprintf(ctx.recipients_title, "Collect Rewards");
-            hedera_sprintf(ctx.amount_title, "Update Account");
+            hedera_sprintf(ctx.amount_title, "Updating");
 
             const char stake_target[ DISPLAY_SIZE * 2 ];
 
@@ -1233,13 +1231,6 @@ void handle_transaction_body() {
                                 ctx.transaction.data.cryptoTransfer.transfers
                                     .accountAmounts[ 0 ]
                                     .accountID.accountNum);
-
-                hedera_snprintf(
-                    ctx.amount, DISPLAY_SIZE * 2, "%s hbar",
-                    hedera_format_tinybar(
-                        ctx.transaction.data.cryptoTransfer.transfers
-                            .accountAmounts[ 0 ]
-                            .amount));
             } else if (ctx.transaction.data.cryptoTransfer.transfers
                            .accountAmounts_count == 2) {
                 // Number of Accounts == 2
@@ -1288,16 +1279,11 @@ void handle_transaction_body() {
                             .accountAmounts[ ctx.transfer_to_index ]
                             .amount));
             } else if (ctx.transaction.data.cryptoTransfer
-                               .tokenTransfers_count == 1 &&
-                       ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                               .transfers_count == 1) {
+                           .tokenTransfers_count == 2) {
                 // Fungible Token Transfer
                 ctx.type = TokenTransfer;
 
-                // Transactions fail if not given in the correct denomination
-                validate_decimals(
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .expected_decimals.value);
+                validate_token_transfer();
 
                 hedera_snprintf(
                     ctx.summary_line_1, DISPLAY_SIZE * 2, "Send %llu.%llu.%llu",
@@ -1318,35 +1304,41 @@ void handle_transaction_body() {
                     ctx.transfer_to_index = 0;
                 }
 
-                hedera_snprintf(
-                    ctx.senders, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_from_index ]
-                        .accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_from_index ]
-                        .accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_from_index ]
-                        .accountID.accountNum);
+                hedera_snprintf(ctx.senders, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_from_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.shardNum,
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_from_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.realmNum,
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_from_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.accountNum);
 
-                hedera_snprintf(
-                    ctx.recipients, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_to_index ]
-                        .accountID.shardNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_to_index ]
-                        .accountID.realmNum,
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                        .transfers[ ctx.transfer_to_index ]
-                        .accountID.accountNum);
+                hedera_snprintf(ctx.recipients, DISPLAY_SIZE * 2,
+                                "%llu.%llu.%llu",
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_to_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.shardNum,
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_to_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.realmNum,
+                                ctx.transaction.data.cryptoTransfer
+                                    .tokenTransfers[ ctx.transfer_to_index ]
+                                    .transfers[ 0 ]
+                                    .accountID.accountNum);
 
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%s",
                     hedera_format_amount(
-                        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
-                            .transfers[ ctx.transfer_to_index ]
+                        ctx.transaction.data.cryptoTransfer
+                            .tokenTransfers[ ctx.transfer_to_index ]
+                            .transfers[ 0 ]
                             .amount,
                         ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
                             .expected_decimals.value));
@@ -1443,4 +1435,26 @@ void validate_decimals(uint32_t decimals) {
         // We only support decimal values less than 20
         THROW(EXCEPTION_MALFORMED_APDU);
     }
+}
+
+void validate_token_transfer() {
+    // Two token transfers with one transfer each
+    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                .transfers_count != 1 ||
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ]
+                .transfers_count != 1) {
+        THROW(EXCEPTION_MALFORMED_APDU);
+    }
+
+    // Same token
+    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ].token !=
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ].token) {
+        THROW(EXCEPTION_MALFORMED_APDU);
+    }
+
+    // Transactions fail if not given in the right denomination
+    validate_decimals(ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+                          .expected_decimals.value);
+    validate_decimals(ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ]
+                          .expected_decimals.value);
 }
