@@ -1446,9 +1446,27 @@ void validate_token_transfer() {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
-    // Same token
-    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ].token !=
-        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ].token) {
+    // Same shard
+    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+            .token.shardNum !=
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ]
+            .token.shardNum) {
+        THROW(EXCEPTION_MALFORMED_APDU);
+    }
+
+    // Same realm
+    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+            .token.realmNum !=
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ]
+            .token.realmNum) {
+        THROW(EXCEPTION_MALFORMED_APDU);
+    }
+
+    // Same num
+    if (ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
+            .token.tokenNum !=
+        ctx.transaction.data.cryptoTransfer.tokenTransfers[ 1 ]
+            .token.tokenNum) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
