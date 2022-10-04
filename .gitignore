@@ -14,3 +14,7 @@ src/pb_*
 proto/*.c
 proto/*.h
 *.pyc
+
+# Tests
+tests/elfs/
+

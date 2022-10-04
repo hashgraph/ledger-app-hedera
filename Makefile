@@ -160,7 +160,7 @@ DEFINES   += PB_NO_ERRMSG=1
 SOURCE_FILES += $(NANOPB_CORE)
 CFLAGS += "-I$(NANOPB_DIR)"
 
-# Build rule for proto files
+# Build rule for C proto files
 SOURCE_FILES += proto/BasicTypes.pb.c
 SOURCE_FILES += proto/Wrappers.pb.c
 SOURCE_FILES += proto/CryptoCreate.pb.c
@@ -193,6 +193,43 @@ proto/TokenMint.pb.c: proto/BasicTypes.proto
 
 proto/TokenBurn.pb.c: proto/BasicTypes.proto
 	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/TokenBurn.proto
+
+# Build rule for Python proto files
+PYTHON_PB_FILES += proto/BasicTypes.pb2.py
+PYTHON_PB_FILES += proto/Wrappers.pb2.py
+PYTHON_PB_FILES += proto/CryptoCreate.pb2.py
+PYTHON_PB_FILES += proto/Transfer.pb2.py
+PYTHON_PB_FILES += proto/TransactionBody.pb2.py
+PYTHON_PB_FILES += proto/TokenAssociate.pb2.py
+PYTHON_PB_FILES += proto/TokenMint.pb2.py
+PYTHON_PB_FILES += proto/TokenBurn.pb2.py
+
+proto/BasicTypes.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/BasicTypes.proto
+
+proto/Wrappers.pb2.py: proto/Wrappers.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/Wrappers.proto
+
+proto/CryptoCreate.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/CryptoCreate.proto
+
+proto/Transfer.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/Transfer.proto
+
+proto/TransactionBody.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/TransactionBody.proto
+
+proto/TokenAssociate.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/TokenAssociate.proto
+
+proto/TokenMint.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/TokenMint.proto
+
+proto/TokenBurn.pb2.py: proto/BasicTypes.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. proto/TokenBurn.proto
+
+.PHONY: python_pb
+python_pb: $(PYTHON_PB_FILES)
 
 # target to also clean generated proto c files
 .SILENT : cleanall

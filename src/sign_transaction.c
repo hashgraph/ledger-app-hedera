@@ -1067,6 +1067,7 @@ void handle_transaction_body() {
 
     // <Do Action>
     // with Key #X?
+    PRINTF("hedera_snprintf\n");
     hedera_snprintf(
         ctx.summary_line_2,
         DISPLAY_SIZE,
@@ -1074,6 +1075,7 @@ void handle_transaction_body() {
         ctx.key_index
     );
 
+    PRINTF("hedera_snprintf\n");
     hedera_snprintf(
         ctx.operator,
         DISPLAY_SIZE * 2,
@@ -1108,6 +1110,7 @@ void handle_transaction_body() {
     );
 
     // Handle parsed protobuf message of transaction body
+    PRINTF("switch (ctx.transaction.which_data) {\n");
     switch (ctx.transaction.which_data) {
         case HederaTransactionBody_cryptoCreateAccount_tag:
             ctx.type = Create;
@@ -1413,12 +1416,12 @@ void handle_sign_transaction(
     if (raw_transaction_length > MAX_TX_SIZE) {
         THROW(EXCEPTION_MALFORMED_APDU);
     }
-
     // copy raw transaction
     memmove(raw_transaction, (buffer + 4), raw_transaction_length);
 
     // Sign Transaction
     // TODO: handle error return here (internal error?!)
+    PRINTF("hedera_sign\n");
     if (!hedera_sign(
         ctx.key_index,
         raw_transaction,
@@ -1429,12 +1432,14 @@ void handle_sign_transaction(
     }
 
     // Make in memory buffer into stream
+    PRINTF("pb_istream_from_buffer\n");
     pb_istream_t stream = pb_istream_from_buffer(
         raw_transaction,
         raw_transaction_length
     );
 
     // Decode the Transaction
+    PRINTF("pb_decode\n");
     if (!pb_decode(
         &stream,
         HederaTransactionBody_fields,
@@ -1444,6 +1449,7 @@ void handle_sign_transaction(
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
+    PRINTF("handle_transaction_body\n");
     handle_transaction_body();
 
     *flags |= IO_ASYNCH_REPLY;
@@ -1455,6 +1461,8 @@ void handle_sign_transaction(
 void validate_transfer() {
     if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count > 2) {
         // More than two accounts in a transfer
+        PRINTF("More than two accounts in a transfer\n");
+        PRINTF("ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count = %d\n", ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count);
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
@@ -1463,22 +1471,31 @@ void validate_transfer() {
         ctx.transaction.data.cryptoTransfer.tokenTransfers_count != 0
     ) {
         // Can't also transfer tokens while sending hbar
+        PRINTF("Can't also transfer tokens while sending hbar\n");
+        PRINTF("ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count = %u\n", ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count);
+        PRINTF("ctx.transaction.data.cryptoTransfer.tokenTransfers_count = %u\n", ctx.transaction.data.cryptoTransfer.tokenTransfers_count);
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
     if (ctx.transaction.data.cryptoTransfer.tokenTransfers_count > 1) {
         // More than one token transferred
+        PRINTF("More than one token transferred\n");
         THROW(EXCEPTION_MALFORMED_APDU);
     }
 
     if (ctx.transaction.data.cryptoTransfer.tokenTransfers_count == 1) {
         if (ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers_count != 2) {
             // More than two accounts in a token transfer
+            PRINTF("ctx.transaction.data.cryptoTransfer.tokenTransfers_count = %d\n", ctx.transaction.data.cryptoTransfer.tokenTransfers_count);
+            PRINTF("ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers_count = %d\n", ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers_count);
+            PRINTF("More than two accounts in a token transfer\n");
             THROW(EXCEPTION_MALFORMED_APDU);
         }
 
         if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count != 0) {
             // Can't also transfer Hbar if the transaction is an otherwise valid token transfer
+            PRINTF("Can't also transfer Hbar if the transaction is an otherwise valid token transfer\n");
+            PRINTF("ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count = %u\n", ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count);
             THROW(EXCEPTION_MALFORMED_APDU);
         }
     }
