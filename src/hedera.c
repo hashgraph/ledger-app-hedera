@@ -6,7 +6,7 @@
 
 bool hedera_derive_keypair(
     uint32_t index,
-    /* out */ cx_ecfp_private_key_t* secret, 
+    /* out */ cx_ecfp_private_key_t* secret,
     /* out */ cx_ecfp_public_key_t* public
 ) {
     static uint8_t seed[32];
@@ -20,20 +20,20 @@ bool hedera_derive_keypair(
     path[4] = index | 0x80000000;
 
     os_perso_derive_node_bip32_seed_key(
-        HDW_ED25519_SLIP10, 
-        CX_CURVE_Ed25519, 
-        path, 
-        5, 
-        seed, 
-        NULL, 
-        NULL, 
+        HDW_ED25519_SLIP10,
+        CX_CURVE_Ed25519,
+        path,
+        5,
+        seed,
+        NULL,
+        NULL,
         0
     );
 
     if (CX_OK != cx_ecfp_init_private_key_no_throw(
-        CX_CURVE_Ed25519, 
-        seed, 
-        sizeof(seed), 
+        CX_CURVE_Ed25519,
+        seed,
+        sizeof(seed),
         &pk
     )) {
         return false;
@@ -41,18 +41,18 @@ bool hedera_derive_keypair(
 
     if (public) {
         if (CX_OK != cx_ecfp_init_public_key_no_throw(
-            CX_CURVE_Ed25519, 
-            NULL, 
-            0, 
+            CX_CURVE_Ed25519,
+            NULL,
+            0,
             public
         )) {
             return false;
         }
 
         if (CX_OK != cx_ecfp_generate_pair_no_throw(
-            CX_CURVE_Ed25519, 
-            public, 
-            &pk, 
+            CX_CURVE_Ed25519,
+            public,
+            &pk,
             1
         )) {
             return false;

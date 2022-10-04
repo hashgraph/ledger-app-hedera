@@ -9,7 +9,7 @@ struct cx_ecfp_256_private_key_s;
 
 extern bool hedera_derive_keypair(
     uint32_t index,
-    /* out */ struct cx_ecfp_256_private_key_s* secret, 
+    /* out */ struct cx_ecfp_256_private_key_s* secret,
     /* out */ struct cx_ecfp_256_public_key_s* public
 );
 

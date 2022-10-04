@@ -47,11 +47,11 @@ void app_main() {
                     case INS_GET_APP_CONFIGURATION:
                         // handlers -> get_app_configuration
                         handle_get_app_configuration(
-                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P1],
                             G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, 
-                            G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, 
+                            G_io_apdu_buffer + OFFSET_CDATA,
+                            G_io_apdu_buffer[OFFSET_LC],
+                            &flags,
                             &tx
                         );
                         break;
@@ -59,11 +59,11 @@ void app_main() {
                     case INS_GET_PUBLIC_KEY:
                         // handlers -> get_public_key
                         handle_get_public_key(
-                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P1],
                             G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, 
-                            G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, 
+                            G_io_apdu_buffer + OFFSET_CDATA,
+                            G_io_apdu_buffer[OFFSET_LC],
+                            &flags,
                             &tx
                         );
                         break;
@@ -71,16 +71,16 @@ void app_main() {
                     case INS_SIGN_TRANSACTION:
                         // handlers -> sign_transaction
                         handle_sign_transaction(
-                            G_io_apdu_buffer[OFFSET_P1], 
+                            G_io_apdu_buffer[OFFSET_P1],
                             G_io_apdu_buffer[OFFSET_P2],
-                            G_io_apdu_buffer + OFFSET_CDATA, 
-                            G_io_apdu_buffer[OFFSET_LC], 
-                            &flags, 
+                            G_io_apdu_buffer + OFFSET_CDATA,
+                            G_io_apdu_buffer[OFFSET_LC],
+                            &flags,
                             &tx
                         );
                         break;
 
-                    default: 
+                    default:
                         THROW(EXCEPTION_UNKNOWN_INS);
                 }
             }
@@ -139,7 +139,7 @@ __attribute__((section(".boot"))) int main() {
 
         BEGIN_TRY {
             TRY {
-                // Initialize the hardware abstraction layer (HAL) in 
+                // Initialize the hardware abstraction layer (HAL) in
                 // the Ledger SDK
                 io_seproxyhal_init();
 
