@@ -10,12 +10,10 @@ extern unsigned long app_stack_canary;
 
 void debug_init_stack_canary() { STACK_CANARY = 0xDEADBEEF; }
 
-void debug_check_stack_canary()
-{
-  if (STACK_CANARY != 0xDEADBEEF)
-  {
-    THROW(EXCEPTION_OVERFLOW);
-  }
+void debug_check_stack_canary() {
+    if (STACK_CANARY != 0xDEADBEEF) {
+        THROW(EXCEPTION_OVERFLOW);
+    }
 }
 
 uint32_t debug_get_stack_canary() { return STACK_CANARY; }

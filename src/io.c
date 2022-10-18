@@ -87,36 +87,6 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len)
   case CHANNEL_KEYBOARD:
     break;
 
-  // multiplexed io exchange over a SPI channel and TLV encapsulated protocol
-  case CHANNEL_SPI:
-    if (tx_len)
-    {
-      io_seproxyhal_spi_send(G_io_apdu_buffer, tx_len);
-
-      if (channel & IO_RESET_AFTER_REPLIED)
-      {
-        reset();
-      }
-      return 0; // nothing received from the master so far (it's a tx
-                // transaction)
-    }
-    else
-    {
-      return io_seproxyhal_spi_recv(G_io_apdu_buffer,
-                                    sizeof(G_io_apdu_buffer), 0);
-    }
-
-  default:
-    THROW(INVALID_PARAMETER);
-  }
-  return 0;
-}
-
-void io_exchange_with_code(uint16_t code, uint16_t tx)
-{
-  G_io_apdu_buffer[tx++] = code >> 8;
-  G_io_apdu_buffer[tx++] = code & 0xff;
-
         // multiplexed io exchange over a SPI channel and TLV encapsulated
         // protocol
         case CHANNEL_SPI:
