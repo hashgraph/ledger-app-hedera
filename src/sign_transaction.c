@@ -1045,17 +1045,18 @@ UX_DEF(ux_mint_flow, &ux_tx_flow_1_step, &ux_tx_flow_2_step, &ux_tx_flow_4_step,
        &ux_tx_flow_8_step, &ux_tx_flow_9_step);
 
 // Associate, Dissociate
-// Summary, Operator, Senders (Token), Fee, Memo, Confirm, Deny
+// Summary, Operator, Senders (Token), Recipients (Account), Fee, Memo, Confirm,
+// Deny
 UX_DEF(ux_associate_flow, &ux_tx_flow_1_step, &ux_tx_flow_2_step,
-       &ux_tx_flow_5_step, &ux_tx_flow_6_step, &ux_tx_flow_7_step,
-       &ux_tx_flow_8_step, &ux_tx_flow_9_step);
+       &ux_tx_flow_3_step, &ux_tx_flow_4_step, &ux_tx_flow_6_step,
+       &ux_tx_flow_7_step, &ux_tx_flow_8_step, &ux_tx_flow_9_step);
 
 void handle_transaction_body() {
     explicit_bzero(ctx.summary_line_1, DISPLAY_SIZE + 1);
     explicit_bzero(ctx.summary_line_2, DISPLAY_SIZE + 1);
     explicit_bzero(ctx.amount_title, DISPLAY_SIZE + 1);
     explicit_bzero(ctx.senders_title, DISPLAY_SIZE + 1);
-    explicit_bzero(ctx.recipients_title, DIPSLAY_SIZE + 1);
+    explicit_bzero(ctx.recipients_title, DISPLAY_SIZE + 1);
     explicit_bzero(ctx.operator, DISPLAY_SIZE * 2 + 1);
     explicit_bzero(ctx.senders, DISPLAY_SIZE * 2 + 1);
     explicit_bzero(ctx.recipients, DISPLAY_SIZE * 2 + 1);
@@ -1073,7 +1074,7 @@ void handle_transaction_body() {
     hedera_snprintf(ctx.operator, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
-                    ctx.transaction.transactionID.accountID.accountNum);
+                    ctx.transaction.transactionID.accountID.account);
 
     hedera_snprintf(ctx.fee, DISPLAY_SIZE * 2, "%s hbar",
                     hedera_format_tinybar(ctx.transaction.transactionFee));
@@ -1086,24 +1087,24 @@ void handle_transaction_body() {
 
     // Handle parsed protobuf message of transaction body
     switch (ctx.transaction.which_data) {
-        case HederaTransactionBody_cryptoCreateAccount_tag: {
+        case Hedera_TransactionBody_cryptoCreateAccount_tag: {
             ctx.type = Create;
             hedera_sprintf(ctx.summary_line_1, "Create Account");
             hedera_sprintf(ctx.senders_title, "Stake To");
             hedera_sprintf(ctx.recipients_title, "Collect Rewards?");
             hedera_sprintf(ctx.amount_title, "Balance");
 
-            const char stake_target[ ACCOUNT_ID_SIZE ];
+            char stake_target[ ACCOUNT_ID_SIZE ];
 
-            if (ctx.transaciton.data.cryptoCreateAccount.which_staked_id ==
-                Hedera_CrytoCreateTransactionBody_staked_account_id_tag) {
+            if (ctx.transaction.data.cryptoCreateAccount.which_staked_id ==
+                Hedera_CryptoCreateTransactionBody_staked_account_id_tag) {
                 hedera_snprintf(stake_target, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_account_id.shardNum,
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_account_id.realmNum,
                                 ctx.transaction.data.cryptoCreateAccount
-                                    .staked_id.staked_account_id.accountNum);
+                                    .staked_id.staked_account_id.account);
             } else if (ctx.transaction.data.cryptoCreateAccount
                            .which_staked_id ==
                        Hedera_CryptoCreateTransactionBody_staked_node_id_tag) {
@@ -1111,7 +1112,7 @@ void handle_transaction_body() {
                                 ctx.transaction.data.cryptoCreateAccount
                                     .staked_id.staked_node_id);
             } else {
-                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None")
+                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None");
             }
 
             hedera_snprintf(ctx.senders, DISPLAY_SIZE * 2, "%s", stake_target);
@@ -1128,7 +1129,7 @@ void handle_transaction_body() {
                     ctx.transaction.data.cryptoCreateAccount.initialBalance));
         } break;
 
-        case HederaTransactionBody_cryptoUpdateAccount_tag: {
+        case Hedera_TransactionBody_cryptoUpdateAccount_tag: {
             ctx.type = Update;
             hedera_sprintf(ctx.summary_line_1, "Update Account");
             hedera_sprintf(ctx.senders_title, "Stake To");
@@ -1137,7 +1138,7 @@ void handle_transaction_body() {
 
             const char stake_target[ DISPLAY_SIZE * 2 ];
 
-            if (ctx.transaciton.data.cryptoUpdateAccount.which_staked_id ==
+            if (ctx.transaction.data.cryptoUpdateAccount.which_staked_id ==
                 Hedera_CryptoUpdateTransactionBody_staked_account_id_tag) {
                 hedera_snprintf(stake_target, DISPLAY_SIZE * 2,
                                 "%llu.%llu.%llu",
@@ -1146,7 +1147,7 @@ void handle_transaction_body() {
                                 ctx.transaction.data.cryptoUpdateAccount
                                     .staked_id.staked_account_id.realmNum,
                                 ctx.transaction.data.cryptoUpdateAccount
-                                    .staked_id.staked_account_id.accountNum);
+                                    .staked_id.staked_account_id.account);
             } else if (ctx.transaction.data.cryptoUpdateAccount
                            .which_staked_id ==
                        Hedera_CryptoUpdateTransactionBody_staked_node_id_tag) {
@@ -1154,15 +1155,14 @@ void handle_transaction_body() {
                                 ctx.transaction.data.cryptoUpdateAccount
                                     .staked_id.staked_node_id);
             } else {
-                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None")
+                hedera_snprintf(stake_target, DISPLAY_SIZE * 2, "None");
             }
 
             hedera_snprintf(ctx.senders, DISPLAY_SIZE * 2, "%s", stake_target);
 
             if (ctx.transaction.data.cryptoUpdateAccount.has_decline_reward) {
-                Hedera_BoolValue declineRewards =
-                    ctx.transaction.data.cryptoUpdateAccount.decline_reward
-                        .value;
+                bool declineRewards = ctx.transaction.data.cryptoUpdateAccount
+                                          .decline_reward.value;
                 hedera_snprintf(ctx.recipients, DISPLAY_SIZE, "%s",
                                 declineRewards ? "No" : "Yes");
             } else {
@@ -1176,22 +1176,22 @@ void handle_transaction_body() {
                 hedera_snprintf(ctx.amount, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
                                 updatedAccount.shardNum,
                                 updatedAccount.realmNum,
-                                updatedAccount.accountNum);
+                                updatedAccount.account);
             } else {
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
-                    ctx.transaction.transactionID.accountID.accountNum);
+                    ctx.transaction.transactionID.accountID.account);
             }
         } break;
 
-        case HederaTransactionBody_tokenAssociate_tag: {
+        case Hedera_TransactionBody_tokenAssociate_tag: {
             ctx.type = Associate;
 
             hedera_sprintf(ctx.summary_line_1, "Associate Token");
-
             hedera_sprintf(ctx.senders_title, "Token");
+            hedera_sprintf(ctx.recipients_title, "Account");
 
             hedera_snprintf(
                 ctx.senders, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
@@ -1203,14 +1203,14 @@ void handle_transaction_body() {
 
             if (hasAccount) {
                 hedera_snprintf(
-                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.recipients, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.data.tokenAssociate.account.shardNum,
                     ctx.transaction.data.tokenAssociate.account.realmNum,
                     ctx.transaction.data.tokenAssociate.account.account
                         .accountNum);
             } else {
                 hedera_snprintf(
-                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.recipients, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
                     ctx.transaction.transactionID.accountID.account.accountNum);
@@ -1221,35 +1221,34 @@ void handle_transaction_body() {
             ctx.type = Dissociate;
 
             hedera_sprintf(ctx.summary_line_1, "Dissociate Token");
-
             hedera_sprintf(ctx.senders_title, "Token");
+            hedera_sprintf(ctx.recipients_title, "Account");
 
             hedera_snprintf(
                 ctx.senders, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
-                ctx.transaction.data.tokenDissociate.tokens[ 0 ].token.shardNum,
-                ctx.transaction.data.tokenDissociate.tokens[ 0 ].token.realmNum,
-                ctx.transaction.data.tokenDissociate.tokens[ 0 ]
-                    .token.tokenNum);
+                ctx.transaction.data.tokenDissociate.tokens[ 0 ].shardNum,
+                ctx.transaction.data.tokenDissociate.tokens[ 0 ].realmNum,
+                ctx.transaction.data.tokenDissociate.tokens[ 0 ].tokenNum);
 
             bool hasAccount = ctx.transaction.data.tokenAssociate.has_account;
 
             if (hasAccount) {
                 hedera_snprintf(
-                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.recipients, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.data.tokenDissociate.account.shardNum,
                     ctx.transaction.data.tokenDissociate.account.realmNum,
                     ctx.transaction.data.tokenDissociate.account.account
                         .accountNum);
             } else {
                 hedera_snprintf(
-                    ctx.full, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
+                    ctx.recipients, ACCOUNT_ID_SIZE, "%llu.%llu.%llu",
                     ctx.transaction.transactionID.accountID.shardNum,
                     ctx.transaction.transactionID.accountID.realmNum,
                     ctx.transaction.transactionID.accountID.account.accountNum);
             }
         } break;
 
-        case HederaTransactionBody_tokenMint_tag: {
+        case Hedera_TransactionBody_tokenMint_tag: {
             ctx.type = TokenMint;
 
             hedera_sprintf(ctx.summary_line_1, "Mint Token");
@@ -1263,14 +1262,11 @@ void handle_transaction_body() {
 
             hedera_snprintf(
                 ctx.amount, DISPLAY_SIZE * 2, "%s",
-                hedera_format_amount(
-                    ctx.transaction.data.tokenMint.amount,
-                    ctx.transaction.data.tokenMint.has_expected_decimals
-                        ? ctx.transaction.data.tokenMint.expected_decimals
-                        : 0));
+                hedera_format_amount(ctx.transaction.data.tokenMint.amount,
+                                     0)); // always lowest denomination of token
         } break;
 
-        case HederaTransactionBody_tokenBurn_tag: {
+        case Hedera_TransactionBody_tokenBurn_tag: {
             ctx.type = TokenBurn;
 
             hedera_sprintf(ctx.summary_line_1, "Burn Token");
@@ -1284,14 +1280,11 @@ void handle_transaction_body() {
 
             hedera_snprintf(
                 ctx.amount, DISPLAY_SIZE * 2, "%s",
-                hedera_format_amount(
-                    ctx.transaction.data.tokenBurn.amount,
-                    ctx.transaction.data.tokenBurn.has_expected_decimals
-                        ? ctx.transaction.data.tokenBurn.expected_decimals
-                        : 0));
+                hedera_format_amount(ctx.transaction.data.tokenBurn.amount,
+                                     0)); // always lowest denomination of token
         } break;
 
-        case HederaTransactionBody_cryptoTransfer_tag: {
+        case Hedera_TransactionBody_cryptoTransfer_tag: {
             if ( // Only 1 Account (Sender), Fee 1 Tinybar, and Value 0 Tinybar
                 ctx.transaction.data.cryptoTransfer.transfers
                         .accountAmounts[ 0 ]
@@ -1315,7 +1308,7 @@ void handle_transaction_body() {
                                     .accountID.realmNum,
                                 ctx.transaction.data.cryptoTransfer.transfers
                                     .accountAmounts[ 0 ]
-                                    .accountID.accountNum);
+                                    .accountID.account);
             } else if (ctx.transaction.data.cryptoTransfer.transfers
                            .accountAmounts_count == 2) {
                 // Number of Accounts == 2
@@ -1343,7 +1336,7 @@ void handle_transaction_body() {
                                     .accountID.realmNum,
                                 ctx.transaction.data.cryptoTransfer.transfers
                                     .accountAmounts[ ctx.transfer_from_index ]
-                                    .accountID.accountNum);
+                                    .accountID.account);
 
                 hedera_snprintf(ctx.recipients, DISPLAY_SIZE * 2,
                                 "%llu.%llu.%llu",
@@ -1355,7 +1348,7 @@ void handle_transaction_body() {
                                     .accountID.realmNum,
                                 ctx.transaction.data.cryptoTransfer.transfers
                                     .accountAmounts[ ctx.transfer_to_index ]
-                                    .accountID.accountNum);
+                                    .accountID.account);
 
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%s hbar",
@@ -1399,7 +1392,7 @@ void handle_transaction_body() {
                         .accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
                         .transfers[ ctx.transfer_from_index ]
-                        .accountID.accountNum);
+                        .accountID.account);
 
                 hedera_snprintf(
                     ctx.recipients, DISPLAY_SIZE * 2, "%llu.%llu.%llu",
@@ -1411,7 +1404,7 @@ void handle_transaction_body() {
                         .accountID.realmNum,
                     ctx.transaction.data.cryptoTransfer.tokenTransfers[ 0 ]
                         .transfers[ ctx.transfer_to_index ]
-                        .accountID.accountNum);
+                        .accountID.account);
 
                 hedera_snprintf(
                     ctx.amount, DISPLAY_SIZE * 2, "%s",
