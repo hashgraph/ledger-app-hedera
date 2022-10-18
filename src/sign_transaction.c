@@ -1048,7 +1048,7 @@ UX_DEF(ux_mint_flow, &ux_tx_flow_1_step, &ux_tx_flow_2_step, &ux_tx_flow_4_step,
 // Summary, Operator, Senders (Token), Fee, Memo, Confirm, Deny
 UX_DEF(ux_associate_flow, &ux_tx_flow_1_step, &ux_tx_flow_2_step,
        &ux_tx_flow_5_step, &ux_tx_flow_6_step, &ux_tx_flow_7_step,
-       &ux_tx_flow_8_step, &ux_tx_flow_9_step);)
+       &ux_tx_flow_8_step, &ux_tx_flow_9_step);
 
 void handle_transaction_body() {
     explicit_bzero(ctx.summary_line_1, DISPLAY_SIZE + 1);
