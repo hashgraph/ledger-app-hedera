@@ -36,6 +36,7 @@ bool hedera_derive_keypair(
         sizeof(seed),
         &pk
     )) {
+        explicit_bzero(seed, sizeof(seed));
         return false;
     }
 
@@ -46,6 +47,8 @@ bool hedera_derive_keypair(
             0,
             public
         )) {
+            explicit_bzero(seed, sizeof(seed));
+            explicit_bzero(&pk, sizeof(pk));
             return false;
         }
 
@@ -55,6 +58,8 @@ bool hedera_derive_keypair(
             &pk,
             1
         )) {
+            explicit_bzero(seed, sizeof(seed));
+            explicit_bzero(&pk, sizeof(pk));
             return false;
         }
     }
@@ -94,6 +99,7 @@ bool hedera_sign(
         result,                          // signature
         64                               // signature length
     )) {
+        explicit_bzero(&pk, sizeof(pk));
         return false;
     }
 
