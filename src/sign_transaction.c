@@ -1160,7 +1160,7 @@ void handle_transaction_body()
         "%s",
         hedera_format_amount(
             ctx.transaction.data.tokenMint.amount,
-            ctx.transaction.data.tokenMint.has_expected_decimals ? ctx.transaction.data.tokenMint.expected_decimals : 0));
+            ctx.transaction.data.tokenMint.has_expected_decimals ? ctx.transaction.data.tokenMint.expected_decimals.value : 0));
     break;
 
   case HederaTransactionBody_tokenBurn_tag:
@@ -1188,7 +1188,7 @@ void handle_transaction_body()
         "%s",
         hedera_format_amount(
             ctx.transaction.data.tokenBurn.amount,
-            ctx.transaction.data.tokenBurn.has_expected_decimals ? ctx.transaction.data.tokenBurn.expected_decimals : 0));
+            ctx.transaction.data.tokenBurn.has_expected_decimals ? ctx.transaction.data.tokenBurn.expected_decimals.value : 0));
     break;
 
   case HederaTransactionBody_cryptoTransfer_tag:
