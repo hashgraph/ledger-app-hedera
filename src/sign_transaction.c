@@ -1134,9 +1134,9 @@ void handle_transaction_body() {
                 ctx.senders,
                 DISPLAY_SIZE * 2,
                 "%llu.%llu.%llu",
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.shardNum,
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.realmNum,
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.tokenNum
+                ctx.transaction.data.tokenAssociate.tokens[0].shardNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].realmNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].tokenNum
             );
 
             break;
