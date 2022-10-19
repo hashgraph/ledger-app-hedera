@@ -6,7 +6,7 @@
 // area.
 extern unsigned long app_stack_canary;
 
-#define STACK_CANARY (*((volatile uint32_t*)&app_stack_canary))
+#define STACK_CANARY (*((volatile uint32_t *)&app_stack_canary))
 
 void debug_init_stack_canary() { STACK_CANARY = 0xDEADBEEF; }
 

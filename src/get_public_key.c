@@ -14,14 +14,13 @@
 #include "ui.h"
 #include "utils.h"
 
-static struct get_public_key_context_t
-{
-  uint32_t key_index;
+static struct get_public_key_context_t {
+    uint32_t key_index;
 
     // Lines on the UI Screen
     char ui_approve_l2[ DISPLAY_SIZE + 1 ];
 
-  cx_ecfp_public_key_t public;
+    cx_ecfp_public_key_t public;
 
     // Public Key Compare
     uint8_t display_index;
@@ -81,8 +80,8 @@ static unsigned int ui_get_public_key_compare_button(
     return 0;
 }
 
-static const bagl_element_t* ui_prepro_get_public_key_compare(
-    const bagl_element_t* element) {
+static const bagl_element_t *ui_prepro_get_public_key_compare(
+    const bagl_element_t *element) {
     if (element->component.userid == LEFT_ICON_ID && ctx.display_index == 0)
         return NULL; // Hide Left Arrow at Left Edge
     if (element->component.userid == RIGHT_ICON_ID &&
@@ -112,26 +111,26 @@ static unsigned int ui_get_public_key_approve_button(
             ui_idle();
             break;
 
-  case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
-    io_exchange_with_code(EXCEPTION_OK, 32);
-    compare_pk();
-    break;
+        case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
+            io_exchange_with_code(EXCEPTION_OK, 32);
+            compare_pk();
+            break;
 
-  default:
-    break;
-  }
+        default:
+            break;
+    }
 
-  return 0;
+    return 0;
 }
 
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t* e) {
+unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e) {
     io_exchange_with_code(EXCEPTION_OK, 32);
     compare_pk();
     return 0;
 }
 
-unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t* e) {
+unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e) {
     io_exchange_with_code(EXCEPTION_USER_REJECTED, 0);
     ui_idle();
     return 0;
@@ -148,7 +147,7 @@ UX_STEP_VALID(ux_approve_pk_flow_3_step, pb,
               {&C_icon_crossmark, "Reject"});
 
 UX_STEP_CB(ux_compare_pk_flow_1_step, bnnn_paging, ui_idle(),
-           {.title = "Public Key", .text = (char*)ctx.full_key});
+           {.title = "Public Key", .text = (char *)ctx.full_key});
 
 UX_DEF(ux_approve_pk_flow, &ux_approve_pk_flow_1_step,
        &ux_approve_pk_flow_2_step, &ux_approve_pk_flow_3_step);
@@ -159,29 +158,28 @@ void compare_pk() { ux_flow_init(0, ux_compare_pk_flow, NULL); }
 
 #endif // TARGET
 
-void get_pk()
-{
-  // Derive Key
-  hedera_derive_keypair(ctx.key_index, NULL, &ctx.public);
+void get_pk() {
+    // Derive Key
+    hedera_derive_keypair(ctx.key_index, NULL, &ctx.public);
 
-  // Put Key bytes in APDU buffer
-  public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
+    // Put Key bytes in APDU buffer
+    public_key_to_bytes(G_io_apdu_buffer, &ctx.public);
 
     // Populate Key Hex String
     bin2hex(ctx.full_key, G_io_apdu_buffer, KEY_SIZE);
     ctx.full_key[ KEY_SIZE ] = '\0';
 }
 
-void handle_get_public_key(uint8_t p1, uint8_t p2, uint8_t* buffer,
+void handle_get_public_key(uint8_t p1, uint8_t p2, uint8_t *buffer,
                            uint16_t len,
-                           /* out */ volatile unsigned int* flags,
-                           /* out */ volatile unsigned int* tx) {
+                           /* out */ volatile unsigned int *flags,
+                           /* out */ volatile unsigned int *tx) {
     UNUSED(p2);
     UNUSED(len);
     UNUSED(tx);
 
-  // Read Key Index
-  ctx.key_index = U4LE(buffer, 0);
+    // Read Key Index
+    ctx.key_index = U4LE(buffer, 0);
 
     // If p1 != 0, silent mode, for use by apps that request the user's public
     // key frequently Only do UI actions for p1 == 0
@@ -191,31 +189,28 @@ void handle_get_public_key(uint8_t p1, uint8_t p2, uint8_t* buffer,
                         ctx.key_index);
     }
 
-  // Populate context with PK
-  get_pk();
+    // Populate context with PK
+    get_pk();
 
 #if defined(TARGET_NANOS)
 
-  if (p1 == 0)
-  {
-    UX_DISPLAY(ui_get_public_key_approve, NULL);
-  }
+    if (p1 == 0) {
+        UX_DISPLAY(ui_get_public_key_approve, NULL);
+    }
 
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
-  if (p1 == 0)
-  {
-    ux_flow_init(0, ux_approve_pk_flow, NULL);
-  }
+    if (p1 == 0) {
+        ux_flow_init(0, ux_approve_pk_flow, NULL);
+    }
 
 #endif // TARGET
 
-  // Normally happens in approve export public key handler
-  if (p1 != 0)
-  {
-    io_exchange_with_code(EXCEPTION_OK, 32);
-    ui_idle();
-  }
+    // Normally happens in approve export public key handler
+    if (p1 != 0) {
+        io_exchange_with_code(EXCEPTION_OK, 32);
+        ui_idle();
+    }
 
-  *flags |= IO_ASYNCH_REPLY;
+    *flags |= IO_ASYNCH_REPLY;
 }
