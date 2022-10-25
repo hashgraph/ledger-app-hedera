@@ -14,3 +14,9 @@ src/pb_*
 proto/*.c
 proto/*.h
 *.pyc
+
+# Tests
+tests/elfs/
+
+proto/*pb2.py
+nanopb_pb2.py

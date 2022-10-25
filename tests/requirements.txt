@@ -1,0 +1,4 @@
+base58
+bip32
+ragger[tests,speculos]
+protobuf==3.20.3

@@ -5,71 +5,107 @@ on:
   push:
     branches: [ master, develop ]
   pull_request:
-    branches: [ master, develop ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  nanos-build:
+  nano_build:
+    name: Build Hedera application for NanoS, X and S+
+    strategy:
+      matrix:
+        include:
+          - SDK: "$NANOS_SDK"
+            device: nanos
+          - SDK: "$NANOX_SDK"
+            device: nanox
+          - SDK: "$NANOSP_SDK"
+            device: nanosp
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build app
-        run: |
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make
-      - name: Upload app binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-nanos
-          path: bin
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest
 
-  nanox-build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Build app
-        run: |
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=$NANOX_SDK
-      - name: Upload app binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: app-nanox
-          path: bin
+      - name: Clone
+        uses: actions/checkout@v3
 
-  nanosp-build:
+      - name: Build
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=${{ matrix.SDK }}
+          cp bin/app.elf bin/hedera_${{ matrix.device }}.elf
+
+      - name: Upload app binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: hedera_binaries
+          path: ./bin/hedera_${{ matrix.device }}.elf
+          if-no-files-found: error
+
+  python_protobuf_build:
+    name: Build python protobuf files
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Build app
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Build
         run: |
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
-          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=$NANOSP_SDK
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make python_pb
+          cp ./vendor/nanopb/generator/proto/nanopb_pb2.py ./proto
+
       - name: Upload app binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: app-nanosp
-          path: bin
+          name: python_protobuf_files
+          path: ./proto/*_pb2.py
+          if-no-files-found: error
+
+  jobs-e2e-pytest-tests:
+    name: Pytest tests
+
+    needs: [ nano_build, python_protobuf_build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Download app binaries and python protobuf files
+        uses: actions/download-artifact@v3
+
+      - name: Gather artifacts
+        run: |
+          mkdir tests/elfs
+          mv *_binaries/*.elf tests/elfs
+          mv python_protobuf_files/*_pb2.py ./proto/
+          ln -s ./proto/nanopb_pb2.py nanopb_pb2.py
+
+      - name: Install APT dependencies
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+
+      - name: Install Ragger
+        run: |
+          pip install --extra-index-url https://test.pypi.org/simple/ -r tests/requirements.txt
+
+      - name: Run speculos tests
+        run: |
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python pytest -v --tb=short ./tests
 
   scan-build:
     name: Clang Static Analyzer
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build with Clang Static Analyzer
         run: |
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: scan-build
