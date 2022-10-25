@@ -1,1 +1,0 @@
-./vendor/nanopb/generator/proto/nanopb_pb2.py

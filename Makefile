@@ -176,7 +176,7 @@ $(PYTHON_PB_FILES): %_pb2.py: $(PB_FILES)
 .PHONY: python_pb clean_python_pb
 python_pb: $(PYTHON_PB_FILES)
 clean_python_pb:
-	rm $(PYTHON_PB_FILES)
+	rm -f $(PYTHON_PB_FILES)
 
 # target to also clean generated proto c files
 .SILENT : cleanall
