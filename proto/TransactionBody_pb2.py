@@ -12,7 +12,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-import proto.nanopb_pb2 as nanopb__pb2
+import nanopb_pb2 as nanopb__pb2
 from proto import BasicTypes_pb2 as proto_dot_BasicTypes__pb2
 from proto import CryptoCreate_pb2 as proto_dot_CryptoCreate__pb2
 from proto import Transfer_pb2 as proto_dot_Transfer__pb2
