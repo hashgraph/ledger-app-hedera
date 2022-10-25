@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 import pytest
 
@@ -8,8 +7,8 @@ from ragger.backend import SpeculosBackend, LedgerCommBackend, LedgerWalletBacke
 from .utils import app_path_from_app_name
 
 def __str__(self):        # also tried __repr__()
-        # Attempt to print the 'select' attribute in "pytest -v" output
-        return self.select
+    # Attempt to print the 'select' attribute in "pytest -v" output
+    return self.select
 
 
 APPS_DIRECTORY = (Path(__file__).parent / "elfs").resolve()
@@ -26,7 +25,7 @@ def pytest_addoption(parser):
     parser.addoption("--backend", action="store", default="speculos")
     # Enable using --'device' in the pytest command line to restrict testing to specific devices
     for fw in FIRMWARES:
-        parser.addoption("--"+fw.device, action="store_true", help="run on nanos only")
+        parser.addoption("--"+fw.device, action="store_true", help="run on {} only".format(fw.device))
 
 
 # Glue to call every test that depends on the firmware once for each required firmware

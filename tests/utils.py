@@ -5,10 +5,6 @@ from enum import IntEnum
 
 from ragger.backend import SpeculosBackend
 
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.backends import default_backend
-
 
 def app_path_from_app_name(app_dir, app_name: str, device: str) -> Path:
     assert app_dir.is_dir(), f"{app_dir} is not a directory"

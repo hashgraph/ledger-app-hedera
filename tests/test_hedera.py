@@ -82,7 +82,8 @@ def test_hedera_transfer_token_ok(client, firmware):
                                       recipient_shardNum = 100,
                                       recipient_realmNum = 101,
                                       recipient_accountNum = 102,
-                                      amount = 1234567890)
+                                      amount = 1234567890,
+                                      decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,
@@ -105,7 +106,8 @@ def test_hedera_transfer_token_refused(client, firmware):
                                       recipient_shardNum = 100,
                                       recipient_realmNum = 101,
                                       recipient_accountNum = 102,
-                                      amount = 1234567890)
+                                      amount = 1234567890,
+                                      decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,
@@ -212,7 +214,8 @@ def test_hedera_token_burn_ok(client, firmware):
     conf = token_burn_conf(token_shardNum = 57,
                            token_realmNum = 58,
                            token_tokenNum = 59,
-                           amount = 77)
+                           amount = 77,
+                           decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,
@@ -229,7 +232,8 @@ def test_hedera_token_burn_refused(client, firmware):
     conf = token_burn_conf(token_shardNum = 57,
                            token_realmNum = 58,
                            token_tokenNum = 59,
-                           amount = 77)
+                           amount = 77,
+                           decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,
@@ -250,7 +254,8 @@ def test_hedera_token_mint_ok(client, firmware):
     conf = token_mint_conf(token_shardNum = 57,
                            token_realmNum = 58,
                            token_tokenNum = 59,
-                           amount = 77)
+                           amount = 77,
+                           decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,
@@ -267,7 +272,8 @@ def test_hedera_token_mint_refused(client, firmware):
     conf = token_mint_conf(token_shardNum = 57,
                            token_realmNum = 58,
                            token_tokenNum = 59,
-                           amount = 77)
+                           amount = 77,
+                           decimals = 9)
 
     with hedera.send_sign_transaction(index=0,
                                       operator_shard_num=1,

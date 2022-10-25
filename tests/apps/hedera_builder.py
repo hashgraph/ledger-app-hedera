@@ -51,7 +51,8 @@ def crypto_transfer_token_conf(token_shardNum: int,
                                recipient_shardNum: int,
                                recipient_realmNum: int,
                                recipient_accountNum: int,
-                               amount: int) -> Dict:
+                               amount: int,
+                               decimals: int) -> Dict:
 
     hedera_token_id = BasicTypes_pb2.HederaTokenID(
         shardNum = token_shardNum,
@@ -79,13 +80,13 @@ def crypto_transfer_token_conf(token_shardNum: int,
     hedera_transfer_list = Transfer_pb2.HederaTransferList(
         accountAmounts = [],
     )
-    decimals = Wrappers_pb2.UInt32Value(
-        value = 9,
+    decimalsUInt32 = Wrappers_pb2.UInt32Value(
+        value = decimals,
     )
     hedera_token_transfer_list = Transfer_pb2.HederaTokenTransferList(
         token = hedera_token_id,
         transfers = [hedera_account_amount_recipient, hedera_account_amount_sender],
-        expected_decimals = decimals,
+        expected_decimals = decimalsUInt32,
     )
     crypto_transfer = Transfer_pb2.HederaCryptoTransferTransactionBody (
         transfers = hedera_transfer_list,
@@ -123,9 +124,6 @@ def crypto_transfer_hbar_conf(sender_shardNum: int,
     hedera_transfer_list = Transfer_pb2.HederaTransferList(
         accountAmounts = [hedera_account_amount_recipient, hedera_account_amount_sender],
     )
-    decimals = Wrappers_pb2.UInt32Value(
-        value = 9,
-    )
     crypto_transfer = Transfer_pb2.HederaCryptoTransferTransactionBody (
         transfers = hedera_transfer_list,
         tokenTransfers = [],
@@ -160,20 +158,21 @@ def token_associate_conf(token_shardNum: int,
 def token_burn_conf(token_shardNum: int,
                     token_realmNum: int,
                     token_tokenNum: int,
-                    amount: int) -> Dict:
+                    amount: int,
+                    decimals: int) -> Dict:
 
     hedera_token_id = BasicTypes_pb2.HederaTokenID(
         shardNum = token_shardNum,
         realmNum = token_realmNum,
         tokenNum = token_tokenNum,
     )
-    decimals = Wrappers_pb2.UInt32Value(
-        value = 9,
+    decimalsUInt32 = Wrappers_pb2.UInt32Value(
+        value = decimals,
     )
     token_burn = TokenBurn_pb2.HederaTokenBurnTransactionBody(
         token = hedera_token_id,
         amount = amount,
-        expected_decimals = decimals,
+        expected_decimals = decimalsUInt32,
     )
     return {"tokenBurn": token_burn}
 
@@ -181,19 +180,20 @@ def token_burn_conf(token_shardNum: int,
 def token_mint_conf(token_shardNum: int,
                     token_realmNum: int,
                     token_tokenNum: int,
-                    amount: int) -> Dict:
+                    amount: int,
+                    decimals: int) -> Dict:
 
     hedera_token_id = BasicTypes_pb2.HederaTokenID(
         shardNum = token_shardNum,
         realmNum = token_realmNum,
         tokenNum = token_tokenNum,
     )
-    decimals = Wrappers_pb2.UInt32Value(
-        value = 9,
+    decimalsUInt32 = Wrappers_pb2.UInt32Value(
+        value = decimals,
     )
     token_mint = TokenMint_pb2.HederaTokenMintTransactionBody(
         token = hedera_token_id,
         amount = amount,
-        expected_decimals = decimals,
+        expected_decimals = decimalsUInt32,
     )
     return {"tokenMint": token_mint}
