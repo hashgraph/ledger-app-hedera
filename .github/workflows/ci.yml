@@ -18,8 +18,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build app
         run: |
-          make clean
-          make
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
@@ -34,8 +34,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build app
         run: |
-          make clean
-          make BOLOS_SDK=$NANOX_SDK
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=$NANOX_SDK
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
@@ -50,8 +50,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build app
         run: |
-          make clean
-          make BOLOS_SDK=$NANOSP_SDK
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=$NANOSP_SDK
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
@@ -67,8 +67,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build with Clang Static Analyzer
         run: |
-          make clean
-          scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make clean
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
       - uses: actions/upload-artifact@v2
         if: failure()
         with:

@@ -63,7 +63,7 @@ void shift_partial_key() {
 }
 
 static unsigned int ui_get_public_key_compare_button(
-    unsigned int button_mask, 
+    unsigned int button_mask,
     unsigned int button_mask_counter
 ) {
     UNUSED(button_mask_counter);
@@ -90,11 +90,11 @@ static unsigned int ui_get_public_key_compare_button(
 static const bagl_element_t* ui_prepro_get_public_key_compare(
     const bagl_element_t* element
 ) {
-    if (element->component.userid == LEFT_ICON_ID 
+    if (element->component.userid == LEFT_ICON_ID
         && ctx.display_index == 0)
         return NULL; // Hide Left Arrow at Left Edge
-    if (element->component.userid == RIGHT_ICON_ID 
-        && ctx.display_index == KEY_SIZE - DISPLAY_SIZE) 
+    if (element->component.userid == RIGHT_ICON_ID
+        && ctx.display_index == KEY_SIZE - DISPLAY_SIZE)
         return NULL; // Hide Right Arrow at Right Edge
     return element;
 }
@@ -103,13 +103,13 @@ void compare_pk() {
     // init partial key str from full str
     memmove(ctx.partial_key, ctx.full_key, DISPLAY_SIZE);
     ctx.partial_key[DISPLAY_SIZE] = '\0';
-    
+
     // init display index
     ctx.display_index = 0;
 
     // Display compare with button mask
     UX_DISPLAY(
-        ui_get_public_key_compare, 
+        ui_get_public_key_compare,
         ui_prepro_get_public_key_compare
     );
 }

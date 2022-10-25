@@ -411,9 +411,9 @@ unsigned int ui_tx_deny_step_button(
 uint8_t num_screens(size_t length) {
     // Number of screens is len / display size + 1 for overflow
     if (length == 0) return 1;
-    
+
     uint8_t screens = length / DISPLAY_SIZE;
-    
+
     if (length % DISPLAY_SIZE > 0) {
         screens += 1;
     }
@@ -454,7 +454,7 @@ void reformat_operator() {
     );
 
     count_screens();
-    
+
     hedera_snprintf(
         ctx.title,
         DISPLAY_SIZE,
@@ -664,7 +664,7 @@ void reformat_amount() {
                 DISPLAY_SIZE * 3,
                 "%s",
                 hedera_format_amount(
-                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].amount, 
+                    ctx.transaction.data.cryptoTransfer.tokenTransfers[0].transfers[ctx.transfer_to_index].amount,
                     ctx.transaction.data.cryptoTransfer.tokenTransfers[0].expected_decimals.value
                 )
             );
@@ -720,7 +720,7 @@ void reformat_memo() {
 
     if (strlen(ctx.full) > MAX_MEMO_SIZE) {
         // :grimacing:
-        THROW(EXCEPTION_MALFORMED_APDU); 
+        THROW(EXCEPTION_MALFORMED_APDU);
     }
 
     count_screens();
@@ -748,7 +748,7 @@ void handle_transaction_body() {
     ctx.display_index = 1;
     ctx.display_count = 1;
 
-    // <Do Action> 
+    // <Do Action>
     // with Key #X?
     hedera_snprintf(
         ctx.summary_line_2,
@@ -804,7 +804,7 @@ void handle_transaction_body() {
             validate_transfer();
 
             if ( // Only 1 Account (Sender), Fee 1 Tinybar, and Value 0 Tinybar
-                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 && 
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 &&
                 ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
                 ctx.transaction.transactionFee == 1
             ) {
@@ -816,7 +816,7 @@ void handle_transaction_body() {
                     "Verify Account"
                 );
 
-            } else if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 2) { 
+            } else if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 2) {
                 // Number of Accounts == 2
                 // Some other Transfer Transaction
                 ctx.type = Transfer;
@@ -895,7 +895,7 @@ static struct sign_tx_context_t {
 
     // Transaction Amount
     char amount[DISPLAY_SIZE * 2 + 1];
-    
+
     // Transaction Fee
     char fee[DISPLAY_SIZE * 2 + 1];
 
@@ -1041,6 +1041,16 @@ UX_DEF(
     &ux_tx_flow_9_step
 );
 
+// Burn/Mint UX Flow
+UX_DEF(
+    ux_burn_mint_flow,
+    &ux_tx_flow_1_step,
+    &ux_tx_flow_3_step,
+    &ux_tx_flow_5_step,
+    &ux_tx_flow_8_step,
+    &ux_tx_flow_9_step
+);
+
 void handle_transaction_body() {
     explicit_bzero(ctx.summary_line_1, DISPLAY_SIZE + 1);
     explicit_bzero(ctx.summary_line_2, DISPLAY_SIZE + 1);
@@ -1055,7 +1065,7 @@ void handle_transaction_body() {
 
     ctx.type = Unknown;
 
-    // <Do Action> 
+    // <Do Action>
     // with Key #X?
     hedera_snprintf(
         ctx.summary_line_2,
@@ -1134,9 +1144,9 @@ void handle_transaction_body() {
                 ctx.senders,
                 DISPLAY_SIZE * 2,
                 "%llu.%llu.%llu",
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.shardNum,
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.realmNum,
-                ctx.transaction.data.cryptoTransfer.tokenTransfers[0].token.tokenNum
+                ctx.transaction.data.tokenAssociate.tokens[0].shardNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].realmNum,
+                ctx.transaction.data.tokenAssociate.tokens[0].tokenNum
             );
 
             break;
@@ -1145,23 +1155,23 @@ void handle_transaction_body() {
             validate_transfer();
 
             if ( // Only 1 Account (Sender), Fee 1 Tinybar, and Value 0 Tinybar
-                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 && 
+                ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount == 0 &&
                 ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 1 &&
                 ctx.transaction.transactionFee == 1
             ) {
                 // Verify Account Transaction
                 ctx.type = Verify;
-                
+
                 hedera_sprintf(
                     ctx.summary_line_1,
                     "Verify Account"
                 );
-                
+
                 hedera_sprintf(
                     ctx.senders_title,
                     "Account"
                 );
-                
+
                 hedera_snprintf(
                     ctx.senders,
                     DISPLAY_SIZE * 2,
@@ -1177,7 +1187,7 @@ void handle_transaction_body() {
                     "%s hbar",
                     hedera_format_tinybar(ctx.transaction.data.cryptoTransfer.transfers.accountAmounts[0].amount)
                 );
-            } else if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 2) { 
+            } else if (ctx.transaction.data.cryptoTransfer.transfers.accountAmounts_count == 2) {
                 // Number of Accounts == 2
                 // Some other Transfer Transaction
                 ctx.type = Transfer;
@@ -1274,11 +1284,86 @@ void handle_transaction_body() {
             }
         } break;
 
+        case HederaTransactionBody_tokenBurn_tag:
+            ctx.type = TokenBurn;
+
+            hedera_sprintf(
+                ctx.summary_line_1,
+                "Burn Token"
+            );
+
+            hedera_sprintf(
+                ctx.senders_title,
+                "Token");
+
+            hedera_snprintf(
+                ctx.senders,
+                DISPLAY_SIZE * 2,
+                "%llu.%llu.%llu",
+                ctx.transaction.data.tokenBurn.token.shardNum,
+                ctx.transaction.data.tokenBurn.token.realmNum,
+                ctx.transaction.data.tokenBurn.token.tokenNum
+            );
+
+            hedera_sprintf(
+                ctx.amount_title,
+                "Amount");
+
+            validate_decimals(ctx.transaction.data.tokenBurn.expected_decimals.value);
+            hedera_snprintf(
+                ctx.amount,
+                DISPLAY_SIZE * 3,
+                "%s",
+                hedera_format_amount(
+                    ctx.transaction.data.tokenBurn.amount,
+                    ctx.transaction.data.tokenBurn.expected_decimals.value
+                )
+            );
+            break;
+
+        case HederaTransactionBody_tokenMint_tag:
+            ctx.type = TokenMint;
+
+            hedera_sprintf(
+                ctx.summary_line_1,
+                "Mint Token"
+            );
+
+            hedera_sprintf(
+                ctx.senders_title,
+                "Token");
+
+            hedera_snprintf(
+                ctx.senders,
+                DISPLAY_SIZE * 2,
+                "%llu.%llu.%llu",
+                ctx.transaction.data.tokenMint.token.shardNum,
+                ctx.transaction.data.tokenMint.token.realmNum,
+                ctx.transaction.data.tokenMint.token.tokenNum
+            );
+
+            hedera_sprintf(
+                ctx.amount_title,
+                "Amount");
+
+            validate_decimals(ctx.transaction.data.tokenMint.expected_decimals.value);
+            hedera_snprintf(
+                ctx.amount,
+                DISPLAY_SIZE * 3,
+                "%s",
+                hedera_format_amount(
+                    ctx.transaction.data.tokenMint.amount,
+                    ctx.transaction.data.tokenMint.expected_decimals.value
+                )
+            );
+            break;
+
         default:
             // Unsupported
             THROW(EXCEPTION_MALFORMED_APDU);
             break;
     }
+
 
     switch (ctx.type) {
         case Associate:
@@ -1291,6 +1376,10 @@ void handle_transaction_body() {
         case TokenTransfer:
         case Transfer:
             ux_flow_init(0, ux_transfer_flow, NULL);
+            break;
+        case TokenMint:
+        case TokenBurn:
+            ux_flow_init(0, ux_burn_mint_flow, NULL);
             break;
 
         default:
@@ -1348,7 +1437,7 @@ void handle_sign_transaction(
     // Decode the Transaction
     if (!pb_decode(
         &stream,
-        HederaTransactionBody_fields, 
+        HederaTransactionBody_fields,
         &ctx.transaction
     )) {
         // Oh no couldn't ...

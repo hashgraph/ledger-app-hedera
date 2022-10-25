@@ -28,7 +28,7 @@ enum TransactionType {
 // Forward declarations for Nano S UI
 // Step 1
 unsigned int ui_tx_summary_step_button(
-    unsigned int button_mask, 
+    unsigned int button_mask,
     unsigned int button_mask_counter
 );
 
