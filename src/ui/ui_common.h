@@ -1,5 +1,4 @@
-#ifndef LEDGER_HEDERA_UI_H
-#define LEDGER_HEDERA_UI_H 1
+#pragma once
 
 #include "glyphs.h"
 #include "globals.h"
@@ -17,7 +16,3 @@
 #define UI_ICON(userid, x, y, w, glyph) {{BAGL_ICON,userid,x,y,w,6,0,0,0,0xFFFFFF,0,BAGL_FONT_OPEN_SANS_REGULAR_11px|BAGL_FONT_ALIGNMENT_CENTER,glyph},NULL}
 
 #endif // TARGET
-
-extern void ui_idle(void);
-
-#endif // LEDGER_HEDERA_UI_H
