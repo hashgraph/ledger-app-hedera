@@ -1,10 +1,10 @@
-#ifndef LEDGER_HEDERA_UTILS_H
-#define LEDGER_HEDERA_UTILS_H 1
+#pragma once
 
 #include <stdint.h>
 #include <os.h>
 
-extern void public_key_to_bytes(uint8_t *dst, cx_ecfp_public_key_t *public);
-extern void bin2hex(uint8_t *dst, uint8_t *data, uint64_t inlen);
+#define MEMCLEAR(element) explicit_bzero(&element, sizeof(element))
 
-#endif // LEDGER_HEDERA_UTILS_H
+void public_key_to_bytes(uint8_t *dst, cx_ecfp_public_key_t *public);
+
+void bin2hex(uint8_t *dst, uint8_t *data, uint64_t inlen);
