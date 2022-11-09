@@ -17,15 +17,28 @@ APP_NAME = "hedera"
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
 
-FIRMWARES = [Firmware('nanos', '2.1'),
-             Firmware('nanox', '2.0.2'),
-             Firmware('nanosp', '1.0.3')]
+FIRMWARES = [
+    Firmware('nanos', '2.1'),
+    Firmware('nanox', '2.0.2'),
+    Firmware('nanosp', '1.0.3'),
+]
 
 def pytest_addoption(parser):
     parser.addoption("--backend", action="store", default="speculos")
+    parser.addoption("--display", action="store_true", default=False)
     # Enable using --'device' in the pytest command line to restrict testing to specific devices
     for fw in FIRMWARES:
         parser.addoption("--"+fw.device, action="store_true", help="run on {} only".format(fw.device))
+
+
+@pytest.fixture(scope="session")
+def backend(pytestconfig):
+    return pytestconfig.getoption("backend")
+
+
+@pytest.fixture(scope="session")
+def display(pytestconfig):
+    return pytestconfig.getoption("display")
 
 
 # Glue to call every test that depends on the firmware once for each required firmware
@@ -45,35 +58,32 @@ def pytest_generate_tests(metafunc):
                 ids.append(fw.device + " " + fw.version)
         metafunc.parametrize("firmware", fw_list, ids=ids)
 
-def prepare_speculos_args(firmware):
+
+def prepare_speculos_args(firmware, display: bool):
     speculos_args = []
-    # Uncomment line below to enable display
-    # speculos_args += ["--display", "qt"]
+
+    if display:
+        speculos_args += ["--display", "qt"]
 
     app_path = app_path_from_app_name(APPS_DIRECTORY, APP_NAME, firmware.device)
 
     return ([app_path], {"args": speculos_args})
 
 
-@pytest.fixture(scope="session")
-def backend(pytestconfig):
-    return pytestconfig.getoption("backend")
-
-
-def create_backend(backend: str, firmware: Firmware):
+def create_backend(backend: str, firmware: Firmware, display: bool):
     if backend.lower() == "ledgercomm":
         return LedgerCommBackend(firmware, interface="hid")
     elif backend.lower() == "ledgerwallet":
         return LedgerWalletBackend(firmware)
     elif backend.lower() == "speculos":
-        args, kwargs = prepare_speculos_args(firmware)
+        args, kwargs = prepare_speculos_args(firmware, display)
         return SpeculosBackend(*args, firmware, **kwargs)
     else:
         raise ValueError(f"Backend '{backend}' is unknown. Valid backends are: {BACKENDS}")
 
 @pytest.fixture
-def client(backend, firmware):
-    with create_backend(backend, firmware) as b:
+def client(backend, firmware, display: bool):
+    with create_backend(backend, firmware, display) as b:
         yield b
 
 @pytest.fixture(autouse=True)

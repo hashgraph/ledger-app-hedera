@@ -4,6 +4,7 @@ from .apps.hedera import HederaClient, ErrorType
 from .apps.hedera_builder import crypto_create_account_conf
 from .apps.hedera_builder import crypto_transfer_token_conf
 from .apps.hedera_builder import crypto_transfer_hbar_conf
+from .apps.hedera_builder import crypto_transfer_verify
 from .apps.hedera_builder import token_associate_conf
 from .apps.hedera_builder import token_burn_conf
 from .apps.hedera_builder import token_mint_conf
@@ -284,6 +285,42 @@ def test_hedera_token_mint_refused(client, firmware):
                                       conf=conf):
         client.raise_policy = RaisePolicy.RAISE_NOTHING
         hedera.validate_screen(3 + 1)
+
+    rapdu = hedera.get_async_response()
+    assert rapdu.status == ErrorType.EXCEPTION_USER_REJECTED
+
+
+def test_hedera_transfer_verify_ok(client, firmware):
+    hedera = HederaClient(client)
+    conf = crypto_transfer_verify(sender_shardNum = 57,
+                                  sender_realmNum = 58,
+                                  sender_accountNum = 59)
+
+    with hedera.send_sign_transaction(index=0,
+                                      operator_shard_num=1,
+                                      operator_realm_num=2,
+                                      operator_account_num=3,
+                                      transaction_fee=1,
+                                      memo="this_is_the_memo",
+                                      conf=conf):
+        hedera.validate_screen(2)
+
+
+def test_hedera_transfer_refused(client, firmware):
+    hedera = HederaClient(client)
+    conf = crypto_transfer_verify(sender_shardNum = 57,
+                                  sender_realmNum = 58,
+                                  sender_accountNum = 59)
+
+    with hedera.send_sign_transaction(index=0,
+                                      operator_shard_num=1,
+                                      operator_realm_num=2,
+                                      operator_account_num=3,
+                                      transaction_fee=1,
+                                      memo="this_is_the_memo",
+                                      conf=conf):
+        client.raise_policy = RaisePolicy.RAISE_NOTHING
+        hedera.validate_screen(2 + 1)
 
     rapdu = hedera.get_async_response()
     assert rapdu.status == ErrorType.EXCEPTION_USER_REJECTED

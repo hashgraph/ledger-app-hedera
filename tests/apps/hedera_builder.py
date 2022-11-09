@@ -131,6 +131,29 @@ def crypto_transfer_hbar_conf(sender_shardNum: int,
     return {"cryptoTransfer": crypto_transfer}
 
 
+def crypto_transfer_verify(sender_shardNum: int,
+                           sender_realmNum: int,
+                           sender_accountNum: int) -> Dict:
+
+    hedera_account_id_sender = BasicTypes_pb2.HederaAccountID(
+        shardNum = sender_shardNum,
+        realmNum = sender_realmNum,
+        accountNum = sender_accountNum,
+    )
+    hedera_account_amount_sender = Transfer_pb2.HederaAccountAmount(
+        accountID = hedera_account_id_sender,
+        amount = 0,
+    )
+    hedera_transfer_list = Transfer_pb2.HederaTransferList(
+        accountAmounts = [hedera_account_amount_sender],
+    )
+    crypto_transfer = Transfer_pb2.HederaCryptoTransferTransactionBody (
+        transfers = hedera_transfer_list,
+        tokenTransfers = [],
+    )
+    return {"cryptoTransfer": crypto_transfer}
+
+
 def token_associate_conf(token_shardNum: int,
                          token_realmNum: int,
                          token_tokenNum: int,
