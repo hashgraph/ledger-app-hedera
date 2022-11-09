@@ -1,7 +1,9 @@
 #include <os.h>
 #include <cx.h>
 #include <string.h>
+
 #include "globals.h"
+#include "utils.h"
 #include "hedera.h"
 
 bool hedera_derive_keypair(
@@ -36,7 +38,7 @@ bool hedera_derive_keypair(
         sizeof(seed),
         &pk
     )) {
-        explicit_bzero(seed, sizeof(seed));
+        MEMCLEAR(seed);
         return false;
     }
 
@@ -47,8 +49,8 @@ bool hedera_derive_keypair(
             0,
             public
         )) {
-            explicit_bzero(seed, sizeof(seed));
-            explicit_bzero(&pk, sizeof(pk));
+            MEMCLEAR(seed);
+            MEMCLEAR(pk);
             return false;
         }
 
@@ -58,8 +60,8 @@ bool hedera_derive_keypair(
             &pk,
             1
         )) {
-            explicit_bzero(seed, sizeof(seed));
-            explicit_bzero(&pk, sizeof(pk));
+            MEMCLEAR(seed);
+            MEMCLEAR(pk);
             return false;
         }
     }
@@ -68,8 +70,8 @@ bool hedera_derive_keypair(
         *secret = pk;
     }
 
-    explicit_bzero(seed, sizeof(seed));
-    explicit_bzero(&pk, sizeof(pk));
+    MEMCLEAR(seed);
+    MEMCLEAR(pk);
 
     return true;
 }
@@ -99,12 +101,12 @@ bool hedera_sign(
         result,                          // signature
         64                               // signature length
     )) {
-        explicit_bzero(&pk, sizeof(pk));
+        MEMCLEAR(pk);
         return false;
     }
 
     // Clear private key
-    explicit_bzero(&pk, sizeof(pk));
+    MEMCLEAR(pk);
 
     return true;
 }

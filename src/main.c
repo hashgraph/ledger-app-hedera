@@ -1,10 +1,12 @@
 #include "errors.h"
 #include "handlers.h"
-#include "ui.h"
+#include "ui_flows.h"
 #include "io.h"
 #include "utils.h"
 #include "debug.h"
 #include "globals.h"
+#include "glyphs.h"
+#include "ux.h"
 
 // This is the main loop that reads and writes APDUs. It receives request
 // APDUs from the computer, looks up the corresponding command handler, and

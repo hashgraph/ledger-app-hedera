@@ -1,10 +1,14 @@
-#include "ui.h"
+#include "globals.h"
+#include "glyphs.h"
+#include "ux.h"
+#include "ui_flows.h"
 
 /*
  * Defines the main menu and idle actions for the app
  */
 
 #if defined(TARGET_NANOS)
+
 ux_state_t ux;
 unsigned int ux_step;
 unsigned int ux_step_count;
@@ -61,7 +65,7 @@ static const ux_menu_entry_t menu_main[4] = {
 
     {
         .menu = NULL,
-        .callback = &os_sched_exit,
+        .callback = (void (*)(unsigned int)) &os_sched_exit,
         .userid = 0,
         .icon = &C_icon_dashboard,
         .line1 = "Quit app",
@@ -72,7 +76,10 @@ static const ux_menu_entry_t menu_main[4] = {
 
     UX_MENU_END
 };
+
+
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+
 
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
@@ -114,13 +121,19 @@ UX_DEF(
 
 #endif // TARGET
 
+
 void ui_idle(void) {
+
 #if defined(TARGET_NANOS)
+
     UX_MENU_DISPLAY(0, menu_main, NULL);
+
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+
     if (G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_idle_flow, NULL);
+
 #endif // #if TARGET_
 }

@@ -1,34 +1,19 @@
-#ifndef LEDGER_HEDERA_GET_PUBLIC_KEY_H
-#define LEDGER_HEDERA_GET_PUBLIC_KEY_H 1
+#pragma once
 
-void get_pk();
-void compare_pk();
+#include "ux.h"
 
-#if defined(TARGET_NANOS)
+typedef struct get_public_key_context_s {
+    uint32_t key_index;
 
-void shift_partial_key();
+    // Lines on the UI Screen
+    char ui_approve_l2[DISPLAY_SIZE + 1];
 
-static unsigned int ui_get_public_key_compare_button(
-    unsigned int button_mask,
-    unsigned int button_mask_counter
-);
+    cx_ecfp_public_key_t public;
 
-static const bagl_element_t* ui_prepro_get_public_key_compare(
-    const bagl_element_t* element
-);
+    // Public Key Compare
+    uint8_t display_index;
+    uint8_t full_key[KEY_SIZE + 1];
+    uint8_t partial_key[DISPLAY_SIZE + 1];
+} get_public_key_context_t;
 
-void send_pk();
-
-static unsigned int ui_get_public_key_approve_button(
-    unsigned int button_mask,
-    unsigned int button_mask_counter
-);
-
-#elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-
-unsigned int io_seproxyhal_touch_pk_ok(const bagl_element_t *e);
-unsigned int io_seproxyhal_touch_pk_cancel(const bagl_element_t *e);
-
-#endif // TARGET
-
-#endif // LEDGER_HEDERA_GET_PUBLIC_KEY_H
+extern get_public_key_context_t gpk_ctx;
