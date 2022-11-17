@@ -1,6 +1,6 @@
 #*******************************************************************************
 #   Ledger App Hedera
-#   (c) 2022 Hedera Hashgraph
+#   (c) 2019 Hedera Hashgraph
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ DFEFINES  += PB_FIELD_32BIT=1
 
 # vendor/printf
 DEFINES   += PRINTF_DISABLE_SUPPORT_FLOAT PRINTF_DISABLE_SUPPORT_EXPONENTIAL PRINTF_DISABLE_SUPPORT_PTRDIFF_T
-DEFINES   += PRINTF_NTOA_BUFFER_SIZE=9U PRINTF_FTOA_BUFFER_SIZE=0
+DEFINES   += PRINTF_FTOA_BUFFER_SIZE=0
 # endif
 
 # U2F
@@ -160,60 +160,28 @@ DEFINES   += PB_NO_ERRMSG=1
 SOURCE_FILES += $(NANOPB_CORE)
 CFLAGS += "-I$(NANOPB_DIR)"
 
-# Build rule for proto files
-SOURCE_FILES += proto/duration.pb.c
-SOURCE_FILES += proto/timestamp.pb.c
-SOURCE_FILES += proto/wrappers.pb.c
-SOURCE_FILES += proto/basic_types.pb.c
-SOURCE_FILES += proto/transaction_body.pb.c
-SOURCE_FILES += proto/token_associate.pb.c
-SOURCE_FILES += proto/token_dissociate.pb.c
-SOURCE_FILES += proto/token_mint.pb.c
-SOURCE_FILES += proto/token_burn.pb.c
-SOURCE_FILES += proto/crypto_create.pb.c
-SOURCE_FILES += proto/crypto_transfer.pb.c
-SOURCE_FILES += proto/crypto_update.pb.c
+PB_FILES = $(wildcard proto/*.proto)
+C_PB_FILES = $(patsubst %.proto,%.pb.c,$(PB_FILES))
+PYTHON_PB_FILES = $(patsubst %.proto,%_pb2.py,$(PB_FILES))
 
-proto/duration.pb.c: proto/duration.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/duration.proto
+# Build rule for C proto files
+SOURCE_FILES += $(C_PB_FILES)
+$(C_PB_FILES): %.pb.c: $(PB_FILES)
+	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. $*.proto
 
-proto/timestamp.pb.c: proto/timestamp.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/timestamp.proto
+# Build rule for Python proto files
+$(PYTHON_PB_FILES): %_pb2.py: $(PB_FILES)
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. $*.proto
 
-proto/wrappers.pb.c: proto/wrappers.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/wrappers.proto
-
-proto/basic_types.pb.c: proto/basic_types.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/basic_types.proto
-
-proto/transaction_body.pb.c: proto/transaction_body.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/transaction_body.proto
-
-proto/token_associate.pb.c: proto/token_associate.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_associate.proto
-
-proto/token_dissociate.pb.c: proto/token_dissociate.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_dissociate.proto
-
-proto/token_mint.pb.c: proto/token_mint.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_mint.proto
-
-proto/token_burn.pb.c: proto/token_burn.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/token_burn.proto
-
-proto/crypto_create.pb.c: proto/crypto_create.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_create.proto
-
-proto/crypto_transfer.pb.c: proto/crypto_transfer.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_transfer.proto
-
-proto/crypto_update.pb.c: proto/crypto_update.proto
-	$(PROTOC) $(PROTOC_OPTS) --nanopb_out=. proto/crypto_update.proto
+.PHONY: python_pb clean_python_pb
+python_pb: $(PYTHON_PB_FILES)
+clean_python_pb:
+	rm -f $(PYTHON_PB_FILES)
 
 # target to also clean generated proto c files
 .SILENT : cleanall
 cleanall : clean
-	-@rm -rf proto/*.pb.c proto/*.pb.h src/*.pb.h src/*.pb.c
+	-@rm -rf proto/*.pb.c proto/*.pb.h
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)

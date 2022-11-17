@@ -1,14 +1,14 @@
 from typing import List, Generator, Dict
 from contextlib import contextmanager
 
-from proto import TransactionBody_pb2
-from proto import BasicTypes_pb2
-from proto import CryptoCreate_pb2
-from proto import TokenAssociate_pb2
-from proto import Transfer_pb2
-from proto import TokenBurn_pb2
-from proto import TokenMint_pb2
-from proto import Wrappers_pb2
+from proto import transaction_body_pb2 as TransactionBody_pb2
+from proto import basic_types_pb2 as BasicTypes_pb2
+from proto import crypto_create_pb2 as CryptoCreate_pb2
+from proto import token_associate_pb2 as TokenAssociate_pb2
+from proto import crypto_transfer_pb2 as Transfer_pb2
+from proto import token_burn_pb2 as TokenBurn_pb2
+from proto import token_mint_pb2 as TokenMint_pb2
+from proto import wrappers_pb2 as Wrappers_pb2
 
 
 def hedera_transaction(operator_shard_num: int,
