@@ -18,11 +18,13 @@ enum TransactionType {
     Unknown = -1,
     Verify = 0,
     Create = 1,
-    Transfer = 2,
-    Associate = 3,
-    TokenTransfer = 4,
-    TokenMint = 5,
-    TokenBurn = 6,
+    Update = 2,
+    Transfer = 3,
+    Associate = 4,
+    Dissociate = 5,
+    TokenTransfer = 6,
+    TokenMint = 7,
+    TokenBurn = 8,
 };
 
 typedef struct sign_tx_context_s {
