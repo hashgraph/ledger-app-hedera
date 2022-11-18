@@ -171,7 +171,7 @@ $(C_PB_FILES): %.pb.c: $(PB_FILES)
 
 # Build rule for Python proto files
 $(PYTHON_PB_FILES): %_pb2.py: $(PB_FILES)
-	$(PROTOC) $(PROTOC_OPTS) --python_out=. $*.proto
+	$(PROTOC) $(PROTOC_OPTS) --python_out=. --mypy_out=. $*.proto
 
 .PHONY: python_pb clean_python_pb
 python_pb: $(PYTHON_PB_FILES)

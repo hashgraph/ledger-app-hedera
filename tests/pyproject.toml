@@ -5,7 +5,14 @@ description = ""
 authors = [
     {name = "", email = "chris@launchbadge.com"},
 ]
-dependencies = ["base58", "bip32", "ragger[speculos,tests]", "protobuf==3.20.3"]
+dependencies = [
+    "base58",
+    "bip32",
+    "ragger[speculos,tests]",
+    "protobuf==3.20.3",
+    "black>=22.10.0",
+    "mypy-protobuf>=3.3.0",
+]
 requires-python = ">=3.10"
 license = {text = "MIT"}
 
