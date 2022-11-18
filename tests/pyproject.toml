@@ -1,0 +1,26 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = "chris@launchbadge.com"},
+]
+dependencies = [
+    "base58",
+    "bip32",
+    "ragger[speculos,tests]",
+    "protobuf==3.20.3",
+    "black>=22.10.0",
+    "mypy-protobuf>=3.3.0",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
+
+[[tool.pdm.source]]
+url = "https://test.pypi.org/simple/"
+verify_ssl = true
+name = "PyPI Tests"
