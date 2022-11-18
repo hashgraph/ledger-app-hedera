@@ -174,6 +174,7 @@ $(PYTHON_PB_FILES): %_pb2.py: $(PB_FILES)
 	$(PROTOC) $(PROTOC_OPTS) --python_out=. --mypy_out=. $*.proto
 
 .PHONY: python_pb clean_python_pb
+c_pb: $(C_PB_FILES)
 python_pb: $(PYTHON_PB_FILES)
 clean_python_pb:
 	rm -f $(PYTHON_PB_FILES)

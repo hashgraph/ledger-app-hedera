@@ -1,6 +1,6 @@
 {
     "python.linting.pylintEnabled": false,
-    "python.linting.pylamaEnabled": true,
+    "python.linting.pylamaEnabled": false,
     "python.linting.enabled": true,
     "files.associations": {
       "*.h": "c",
@@ -15,4 +15,5 @@
       "utility": "c"
     },
     "C_Cpp.dimInactiveRegions": false,
+    "python.linting.mypyEnabled": true,
 }
