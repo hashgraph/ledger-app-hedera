@@ -1,18 +1,18 @@
+#include "get_public_key.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include "globals.h"
-#include "printf.h"
-#include "globals.h"
 #include "debug.h"
 #include "errors.h"
+#include "globals.h"
 #include "handlers.h"
 #include "hedera.h"
 #include "io.h"
-#include "utils.h"
-#include "get_public_key.h"
+#include "printf.h"
 #include "ui_flows.h"
+#include "utils.h"
 
 get_public_key_context_t gpk_ctx;
 
@@ -25,17 +25,13 @@ static void get_pk() {
 
     // Populate Key Hex String
     bin2hex(gpk_ctx.full_key, G_io_apdu_buffer, KEY_SIZE);
-    gpk_ctx.full_key[KEY_SIZE] = '\0';
+    gpk_ctx.full_key[ KEY_SIZE ] = '\0';
 }
 
-void handle_get_public_key(
-        uint8_t p1,
-        uint8_t p2,
-        uint8_t* buffer,
-        uint16_t len,
-        /* out */ volatile unsigned int* flags,
-        /* out */ volatile unsigned int* tx
-) {
+void handle_get_public_key(uint8_t p1, uint8_t p2, uint8_t* buffer,
+                           uint16_t len,
+                           /* out */ volatile unsigned int* flags,
+                           /* out */ volatile unsigned int* tx) {
     UNUSED(p2);
     UNUSED(len);
     UNUSED(tx);
@@ -43,11 +39,12 @@ void handle_get_public_key(
     // Read Key Index
     gpk_ctx.key_index = U4LE(buffer, 0);
 
-    // If p1 != 0, silent mode, for use by apps that request the user's public key frequently
-    // Only do UI actions for p1 == 0
+    // If p1 != 0, silent mode, for use by apps that request the user's public
+    // key frequently Only do UI actions for p1 == 0
     if (p1 == 0) {
         // Complete "Export Public | Key #x?"
-        hedera_snprintf(gpk_ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?", gpk_ctx.key_index);
+        hedera_snprintf(gpk_ctx.ui_approve_l2, DISPLAY_SIZE, "Key #%u?",
+                        gpk_ctx.key_index);
     }
 
     // Populate context with PK

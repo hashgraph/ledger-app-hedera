@@ -1,0 +1,26 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+AlignOperands: true
+BreakStringLiterals: true
+ColumnLimit: 80
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+FixNamespaceComments: true
+IndentCaseLabels: true
+IndentWidth:  4
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Left
+ReflowComments: true
+SortIncludes: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: true
+UseTab: Never
+---
+Language: Proto
+BasedOnStyle: LLVM

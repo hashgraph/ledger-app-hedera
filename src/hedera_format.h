@@ -36,4 +36,3 @@ void reformat_recipient_account(void);
 void reformat_tokens_account_sender(void);
 
 void reformat_tokens_account_recipient(void);
-

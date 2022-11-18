@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <os.h>
+#include <stdint.h>
 
 #define MEMCLEAR(element) explicit_bzero(&element, sizeof(element))
 
