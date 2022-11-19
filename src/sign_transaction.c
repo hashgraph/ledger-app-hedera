@@ -1,25 +1,45 @@
 #include "sign_transaction.h"
-
-#include <pb.h>
-#include <pb_decode.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#include "TransactionBody.pb.h"
-#include "debug.h"
-#include "errors.h"
-#include "globals.h"
-#include "glyphs.h"
-#include "handlers.h"
-#include "hedera.h"
-#include "hedera_format.h"
-#include "io.h"
-#include "printf.h"
-#include "ui_common.h"
-#include "ui_flows.h"
-#include "utils.h"
-#include "ux.h"
+/*
+ * Supported Transactions:
+ *
+ * Verify:
+ * "Verify Account with Key #0?" (Summary) <--> "Account" (Senders) <--> Confirm
+<--> Deny
+ *
+ * Create:
+ * "Create Account with Key #0?" (Summary) <--> Operator <--> "Stake to"
+(Senders) <--> "Collect Rewards? Yes / No" (Recipients) <--> "Initial Balance"
+(Amount) <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * Update:
+ * "Update Account 0.0.0 with Key #0?" (Summary) <--> Operator <--> "Stake to"
+(Senders) <--> "Collect Rewards (Yes / No)" (Recipients) <--> "Updated Account"
+(Amount) <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * Transfer:
+ * "Transfer with Key #0?" (Summary) <--> Operator <--> Senders <--> Recipients
+<--> Amount <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * Associate:
+ * "Associate Token with Key #0?" (Summary) <--> Operator <--> "Token" (Senders)
+<--> "Updating" (Amount) <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * Dissociate:
+ * "Dissociate Token with Key #0?" (Summary) <--> Operator <--> "Token"
+(Senders) <--> "Updating" (Amount) <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * TokenMint:
+ * "Mint Token with Key #0?" (Summary) <--> Operator <--> "Token" (Senders) <-->
+Amount <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * TokenBurn:
+ * "Burn Token with Key #0?" (Summary) <--> Operator <--> "Token" (Senders) <-->
+Amount <--> Fee <--> Memo <--> Confirm <--> Deny
+ *
+ * I chose the steps for the originally supported CreateAccount and Transfer
+transactions, and the additional transactions have been added since then. Steps
+may be skipped or modified (as described above) from the original transfer flow.
+ */
 
 sign_tx_context_t st_ctx;
 
@@ -91,6 +111,7 @@ void handle_transaction_body() {
 #elif defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     MEMCLEAR(st_ctx.amount_title);
     MEMCLEAR(st_ctx.senders_title);
+    MEMCLEAR(st_ctx.recipients_title);
     MEMCLEAR(st_ctx.operator);
     MEMCLEAR(st_ctx.senders);
     MEMCLEAR(st_ctx.recipients);
@@ -111,21 +132,36 @@ void handle_transaction_body() {
     // with Key #X?
     reformat_key();
 
+    // All transactions have an operator
+    reformat_operator();
+
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+    reformat_fee();
+    reformat_memo();
+#endif
+
     // Handle parsed protobuf message of transaction body
     switch (st_ctx.transaction.which_data) {
-        case HederaTransactionBody_cryptoCreateAccount_tag:
+        case Hedera_TransactionBody_cryptoCreateAccount_tag:
             st_ctx.type = Create;
             reformat_summary("Create Account");
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-            reformat_operator();
-            reformat_fee();
-            reformat_memo();
             reformat_amount_balance();
 #endif
             break;
 
-        case HederaTransactionBody_tokenAssociate_tag:
+        case Hedera_TransactionBody_cryptoUpdateAccount_tag:
+            st_ctx.type = Update;
+            reformat_summary("Update Account");
+
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+            reformat_account_update();
+#endif
+
+            break;
+
+        case Hedera_TransactionBody_tokenAssociate_tag:
             st_ctx.type = Associate;
             reformat_summary("Associate Token");
 
@@ -134,7 +170,16 @@ void handle_transaction_body() {
 #endif
             break;
 
-        case HederaTransactionBody_tokenBurn_tag:
+        case Hedera_TransactionBody_tokenDissociate_tag:
+            st_ctx.type = Dissociate;
+            reformat_summary("Dissociate Token");
+
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+            reformat_token_dissociate();
+#endif
+            break;
+
+        case Hedera_TransactionBody_tokenBurn_tag:
             st_ctx.type = TokenBurn;
             reformat_summary("Burn Token");
 
@@ -144,7 +189,7 @@ void handle_transaction_body() {
 #endif
             break;
 
-        case HederaTransactionBody_tokenMint_tag:
+        case Hedera_TransactionBody_tokenMint_tag:
             st_ctx.type = TokenMint;
             reformat_summary("Mint Token");
 
@@ -154,19 +199,12 @@ void handle_transaction_body() {
 #endif
             break;
 
-        case HederaTransactionBody_cryptoTransfer_tag:
+        case Hedera_TransactionBody_cryptoTransfer_tag:
             validate_transfer();
-
-#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-            reformat_operator();
-            reformat_fee();
-            reformat_memo();
-#endif
 
             if (is_verify_account()) {
                 // Verify Account Transaction
                 st_ctx.type = Verify;
-
                 reformat_summary("Verify Account");
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)

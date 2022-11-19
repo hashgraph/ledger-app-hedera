@@ -1,6 +1,26 @@
 #pragma once
 
+#include <pb.h>
+#include <pb_decode.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "TransactionBody.pb.h"
+#include "debug.h"
+#include "errors.h"
+#include "globals.h"
+#include "glyphs.h"
+#include "handlers.h"
+#include "hedera.h"
+#include "hedera_format.h"
+#include "io.h"
+#include "printf.h"
 #include "proto/TransactionBody.pb.h"
+#include "ui_common.h"
+#include "ui_flows.h"
+#include "utils.h"
+#include "ux.h"
 
 enum TransactionStep {
     Summary = 1,

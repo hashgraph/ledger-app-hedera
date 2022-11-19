@@ -3,10 +3,16 @@
     "python.linting.pylamaEnabled": true,
     "python.linting.enabled": true,
     "files.associations": {
-        "*.h": "c",
-        ".clang-tidy": "yaml",
-        "string_view": "c",
-        "regex": "c"
+      "*.h": "c",
+      ".clang-tidy": "yaml",
+      "string_view": "c",
+      "regex": "c",
+      "system_error": "c",
+      "array": "c",
+      "functional": "c",
+      "tuple": "c",
+      "type_traits": "c",
+      "utility": "c"
     },
     "C_Cpp.dimInactiveRegions": false,
 }

@@ -1,4 +1,5 @@
 #pragma once
+
 void reformat_key(void);
 
 void reformat_summary(const char *summary);
