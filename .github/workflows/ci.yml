@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, medium, ephemeral]
+    runs-on: wallet-tools-linux-medium
 
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
@@ -46,7 +46,7 @@ jobs:
 
   scan-build:
     name: Clang Static Analyzer
-    runs-on: [self-hosted, Linux, medium, ephemeral]
+    runs-on: wallet-tools-linux-medium
 
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
